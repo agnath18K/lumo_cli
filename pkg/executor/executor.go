@@ -237,6 +237,9 @@ func (e *Executor) ExecuteWithReader(cmd *nlp.Command, reader io.Reader) (*Resul
 	case nlp.CommandTypeClipboard:
 		// Execute clipboard command
 		return e.executeClipboardCommand(cmd, reader)
+	case nlp.CommandTypeConnect:
+		// Execute connect command
+		return e.executeConnectCommand(cmd)
 	default:
 		return &Result{
 			Output:     "Unknown command type",
@@ -593,6 +596,9 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • clipboard <text>           Copy text to clipboard
    • clipboard append <text>    Append text to clipboard
    • clipboard clear            Clear clipboard contents
+   • connect --receive [options]  Start a server to send/receive files
+   • connect <peer-ip> [options]  Connect to peer to send/receive files
+   • connect --help              Show connect command options
    • config:<options>           Configure Lumo settings
    • version, -v, --version     Show version information
    • help, -h, --help           Show this help
@@ -610,6 +616,9 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • clipboard clear            Clear clipboard contents
    • echo "text" | clipboard    Copy piped text to clipboard
    • echo "more" | clipboard append  Append piped text to clipboard
+   • connect --receive          Start a server on port 8080
+   • connect --receive --port 9000  Start a server on port 9000
+   • connect 192.168.1.5        Connect to peer at 192.168.1.5:8080
    • speed:                     Run a full internet speed test
    • speed:download             Test download speed only
    • cat file.txt | lumo        Analyze piped content
@@ -682,6 +691,7 @@ func (e *Executor) ShowWelcome() (*Result, error) {
    • lumo "how to find large files"
    • lumo chat:Tell me about Linux
    • lumo auto:"create a backup of my documents"
+   • lumo connect --receive
 
   Type 'help' for full documentation and available commands.
 

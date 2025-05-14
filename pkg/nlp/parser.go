@@ -47,6 +47,8 @@ const (
 	CommandTypeMagic
 	// CommandTypeClipboard represents a clipboard operation
 	CommandTypeClipboard
+	// CommandTypeConnect represents a file transfer connection
+	CommandTypeConnect
 )
 
 // Parser handles natural language parsing
@@ -188,6 +190,13 @@ func (p *Parser) Parse(input string) (*Command, error) {
 	if input == "clipboard" || strings.HasPrefix(input, "clipboard ") {
 		cmd.Type = CommandTypeClipboard
 		cmd.Intent = strings.TrimSpace(strings.TrimPrefix(input, "clipboard"))
+		return cmd, nil
+	}
+
+	// Check for connect command
+	if input == "connect" || strings.HasPrefix(input, "connect ") {
+		cmd.Type = CommandTypeConnect
+		cmd.Intent = strings.TrimSpace(strings.TrimPrefix(input, "connect"))
 		return cmd, nil
 	}
 
