@@ -5,7 +5,7 @@
   <a href="https://getlumo.dev"><b>getlumo.dev</b></a>
 
   <p>
-    <img src="https://img.shields.io/badge/version-1.0.1-blue.svg" alt="Version 1.0.1">
+    <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version 1.0.0">
     <img src="https://img.shields.io/badge/go-%3E%3D1.22-00ADD8.svg" alt="Go Version">
     <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT">
   </p>
@@ -41,18 +41,18 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 
 ```bash
 # From source
-git clone https://github.com/agnath18K/lumo.git
-cd lumo
+git clone https://github.com/agnath18K/lumo_cli.git
+cd lumo_cli
 make build
 sudo make install
 
 # Using pre-built binary (Linux)
-curl -L https://github.com/agnath18K/lumo/releases/latest/download/lumo_linux_amd64.tar.gz -o lumo.tar.gz
+curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.0/lumo_1.0.0_linux_amd64.tar.gz -o lumo.tar.gz
 tar -xzf lumo.tar.gz
 sudo mv lumo /usr/local/bin/
 
 # Using Debian package
-curl -L https://github.com/agnath18K/lumo/releases/latest/download/lumo_linux_amd64.deb -o lumo.deb
+curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.0/lumo_1.0.0_amd64.deb -o lumo.deb
 sudo dpkg -i lumo.deb
 ```
 
@@ -104,8 +104,8 @@ Copyright (c) 2024 agnath18
 <div align="center">
   <p>
     <a href="https://getlumo.dev">Website</a> •
-    <a href="https://github.com/agnath18K/lumo">GitHub</a> •
-    <a href="https://github.com/agnath18K/lumo/issues">Issues</a>
+    <a href="https://github.com/agnath18K/lumo_cli">GitHub</a> •
+    <a href="https://github.com/agnath18K/lumo_cli/issues">Issues</a>
   </p>
 
   <p>Designed by <a href="https://github.com/agnath18K">agnath18</a></p>
