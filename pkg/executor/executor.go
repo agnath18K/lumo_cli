@@ -680,8 +680,8 @@ func (e *Executor) ShowWelcome() (*Result, error) {
 
   Examples:
    • lumo "how to find large files"
-   • chat:Tell me about Linux
-   • lumo:ls -la
+   • lumo chat:Tell me about Linux
+   • lumo auto:"create a backup of my documents"
 
   Type 'help' for full documentation and available commands.
 
