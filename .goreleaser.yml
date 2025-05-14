@@ -1,0 +1,76 @@
+project_name: lumo
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    main: ./cmd/lumo/main.go
+    ldflags:
+      - -s -w
+      - -X github.com/agnath18/lumo/pkg/version.Version={{.Version}}
+      - -X github.com/agnath18/lumo/pkg/version.BuildDate={{.Date}}
+      - -X github.com/agnath18/lumo/pkg/version.GitCommit={{.ShortCommit}}
+      - -X github.com/agnath18/lumo/pkg/version.GoVersion={{.Env.GOVERSION}}
+    binary: lumo
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - docs/*
+
+nfpms:
+  - package_name: lumo
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
+    vendor: agnath18K
+    homepage: https://github.com/agnath18K/lumo
+    maintainer: agnath18K <agnath18@gmail.com>
+    description: AI-powered CLI assistant
+    license: MIT
+    formats:
+      - deb
+    dependencies:
+      - libc6
+    contents:
+      - src: README.md
+        dst: /usr/share/doc/lumo/README.md
+    section: utils
+    priority: optional
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
