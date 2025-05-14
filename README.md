@@ -91,7 +91,7 @@ Contributions to Lumo are welcome! Please fork the repository and submit a pull 
 
 ## 📜 License
 
-Lumo is released under the MIT License.
+Lumo is released under the [MIT License](LICENSE).
 
 ```
 MIT License
