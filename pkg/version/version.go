@@ -8,7 +8,7 @@ import (
 // Version information
 var (
 	// Version is the current version of Lumo
-	Version = "1.0.0"
+	Version = "1.0.1"
 
 	// BuildDate is the date when the binary was built
 	BuildDate = "May 13 2025"
