@@ -323,3 +323,46 @@ func TestParseSpeedTestCommands(t *testing.T) {
 		})
 	}
 }
+
+// TestParseCreateCommands tests parsing create commands
+func TestParseCreateCommands(t *testing.T) {
+	cfg := config.DefaultConfig()
+	parser := nlp.NewParser(cfg)
+
+	tests := []struct {
+		name     string
+		input    string
+		expected nlp.CommandType
+		intent   string
+	}{
+		{
+			name:     "create prefix with colon",
+			input:    "create:Flutter app with bloc architecture",
+			expected: nlp.CommandTypeCreate,
+			intent:   "Flutter app with bloc architecture",
+		},
+		{
+			name:     "create command only",
+			input:    "create",
+			expected: nlp.CommandTypeCreate,
+			intent:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd, err := parser.Parse(tt.input)
+			if err != nil {
+				t.Fatalf("Parse returned error: %v", err)
+			}
+
+			if cmd.Type != tt.expected {
+				t.Errorf("Expected command type to be %v, got %v", tt.expected, cmd.Type)
+			}
+
+			if cmd.Intent != tt.intent {
+				t.Errorf("Expected intent to be '%s', got '%s'", tt.intent, cmd.Intent)
+			}
+		})
+	}
+}

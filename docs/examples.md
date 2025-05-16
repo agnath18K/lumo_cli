@@ -194,6 +194,22 @@ echo "This is some text" | lumo clipboard
 cat file.txt | lumo clipboard append
 ```
 
+## Project Creation
+
+```bash
+# Create a Flutter project with BLoC architecture
+lumo create:"Flutter app with bloc architecture"
+
+# Create a Flutter project with Provider state management
+lumo create:"Flutter app with provider state management"
+
+# Create a Flutter project with Riverpod
+lumo create:"Flutter app with riverpod state management"
+
+# Show help for the create command
+lumo create
+```
+
 ## Magic Commands
 
 ```bash

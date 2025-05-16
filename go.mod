@@ -1,6 +1,8 @@
 module github.com/agnath18/lumo
 
-go 1.22.2
+go 1.23.0
+
+toolchain go1.23.9
 
 require github.com/shirou/gopsutil/v3 v3.24.5
 
@@ -14,5 +16,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
+	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 )

@@ -3,7 +3,6 @@ package nlp
 import (
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/agnath18/lumo/pkg/config"
@@ -49,6 +48,8 @@ const (
 	CommandTypeClipboard
 	// CommandTypeConnect represents a file transfer connection
 	CommandTypeConnect
+	// CommandTypeCreate represents a project creation command
+	CommandTypeCreate
 )
 
 // Parser handles natural language parsing
@@ -200,6 +201,18 @@ func (p *Parser) Parse(input string) (*Command, error) {
 		return cmd, nil
 	}
 
+	// Check for create command prefix
+	if strings.HasPrefix(input, "create:") || input == "create" {
+		cmd.Type = CommandTypeCreate
+		if strings.HasPrefix(input, "create:") {
+			cmd.Intent = strings.TrimSpace(input[7:])
+		} else {
+			// Just "create" shows help
+			cmd.Intent = ""
+		}
+		return cmd, nil
+	}
+
 	// Check if this is a command-line argument (first argument is the program name)
 	args := os.Args
 	if len(args) > 1 && input == strings.Join(args[1:], " ") {
@@ -242,15 +255,11 @@ func (p *Parser) Parse(input string) (*Command, error) {
 		return cmd, nil
 	}
 
-	// In AI-first mode, check if this looks like a task that should use agent mode
-	if isAgentTask(input) && p.config.EnableAgentMode {
-		cmd.Type = CommandTypeAgent
-		cmd.Intent = input
-	} else {
-		// Default to AI query for natural language processing
-		cmd.Type = CommandTypeAI
-		cmd.Intent = input
-	}
+	// Default to AI query for natural language processing
+	// We no longer automatically activate agent mode based on content analysis
+	// Agent mode should only be activated with explicit prefixes (agent: or auto:)
+	cmd.Type = CommandTypeAI
+	cmd.Intent = input
 
 	return cmd, nil
 }
@@ -345,58 +354,6 @@ func IsNaturalLanguageQuery(input string) bool {
 	}
 
 	// If none of the above conditions are met, it's likely not a natural language query
-	return false
-}
-
-// isAgentTask determines if a query is likely to be a task for the agent
-// rather than a simple question for the AI
-func isAgentTask(input string) bool {
-	// Convert to lowercase for case-insensitive matching
-	lowerInput := strings.ToLower(input)
-
-	// Check for action verbs and task-like phrases at the beginning
-	actionPrefixes := []string{
-		"create", "find", "list", "show", "get", "make", "setup",
-		"install", "configure", "backup", "search", "organize",
-		"clean", "delete", "remove", "update", "check", "analyze",
-		"how to", "how do i", "can you", "please", "help me",
-	}
-
-	for _, prefix := range actionPrefixes {
-		if strings.HasPrefix(lowerInput, prefix) {
-			return true
-		}
-	}
-
-	// Check for task-like keywords anywhere in the input
-	taskKeywords := []string{
-		"directory", "folder", "file", "system", "command", "script",
-		"backup", "install", "config", "setup", "database", "server",
-		"process", "service", "network", "disk", "memory", "cpu",
-	}
-
-	for _, keyword := range taskKeywords {
-		if strings.Contains(lowerInput, keyword) {
-			return true
-		}
-	}
-
-	// Use regex to check for common task patterns
-	taskPatterns := []*regexp.Regexp{
-		regexp.MustCompile(`\bfind\s+all\b`),
-		regexp.MustCompile(`\bcreate\s+a\b`),
-		regexp.MustCompile(`\bshow\s+me\b`),
-		regexp.MustCompile(`\bhelp\s+me\s+with\b`),
-		regexp.MustCompile(`\bhow\s+can\s+I\b`),
-		regexp.MustCompile(`\bwhat's\s+the\s+best\s+way\s+to\b`),
-	}
-
-	for _, pattern := range taskPatterns {
-		if pattern.MatchString(lowerInput) {
-			return true
-		}
-	}
-
 	return false
 }
 

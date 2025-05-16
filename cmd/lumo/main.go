@@ -80,7 +80,7 @@ func main() {
 			hasPrefix := false
 			for _, prefix := range []string{"lumo:", "shell:", "ask:", "ai:", "auto:", "agent:",
 				"health:", "syshealth:", "report:", "sysreport:", "chat:", "talk:", "config:",
-				"speed:", "speedtest:", "speed-test:", "magic:", "clipboard", "connect"} {
+				"speed:", "speedtest:", "speed-test:", "magic:", "clipboard", "connect", "create"} {
 				if strings.HasPrefix(command, prefix) {
 					hasPrefix = true
 					break
@@ -233,6 +233,27 @@ func main() {
 			}
 			cmd := &nlp.Command{
 				Type:       nlp.CommandTypeClipboard,
+				Intent:     intent,
+				Parameters: make(map[string]string),
+				RawInput:   command,
+			}
+			result, err := exec.Execute(cmd)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
+				os.Exit(1)
+			}
+			term.Display(result)
+		} else if strings.HasPrefix(command, "create:") || command == "create" {
+			// Handle create commands
+			var intent string
+			if strings.HasPrefix(command, "create:") {
+				intent = strings.TrimSpace(command[7:])
+			} else {
+				// Just "create" shows help
+				intent = ""
+			}
+			cmd := &nlp.Command{
+				Type:       nlp.CommandTypeCreate,
 				Intent:     intent,
 				Parameters: make(map[string]string),
 				RawInput:   command,
