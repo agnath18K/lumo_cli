@@ -261,6 +261,23 @@ func (e *Executor) executeShellCommand(cmd *nlp.Command) (*Result, error) {
 		}, nil
 	}
 
+	// Check if the command exists before trying to execute it
+	_, err := exec.LookPath(parts[0])
+	if err != nil {
+		// Command doesn't exist, provide a helpful error message
+		suggestion := ""
+		if len(parts) > 1 {
+			// If there are multiple words, suggest using it as an AI query
+			suggestion = fmt.Sprintf("\n\nDid you mean to ask AI about \"%s\"? Try: lumo ask:\"%s\"", cmd.Intent, cmd.Intent)
+		}
+
+		return &Result{
+			Output:     fmt.Sprintf("Error: exec: \"%s\": executable file not found in $PATH%s", parts[0], suggestion),
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+
 	// Create the command
 	shellCmd := exec.Command(parts[0], parts[1:]...)
 

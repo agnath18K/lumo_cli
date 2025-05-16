@@ -65,7 +65,45 @@ func main() {
 		}
 
 		// Process command from arguments
+		// Join arguments with spaces, preserving quotes if present
 		command := strings.Join(os.Args[1:], " ")
+
+		// In AI-first mode (default), we don't need special handling for quoted strings
+		// as everything will be treated as an AI query by default unless it has a specific prefix
+		// or is a single executable command in command-first mode.
+
+		// However, we still want to handle the case where a command might be a quoted string
+		// that was split by the shell, for better user experience
+		if len(os.Args) > 2 && !cfg.CommandFirstMode {
+			// If we have multiple arguments and none of them start with a prefix like "lumo:" or "shell:",
+			// it might be a quoted string that was split
+			hasPrefix := false
+			for _, prefix := range []string{"lumo:", "shell:", "ask:", "ai:", "auto:", "agent:",
+				"health:", "syshealth:", "report:", "sysreport:", "chat:", "talk:", "config:",
+				"speed:", "speedtest:", "speed-test:", "magic:", "clipboard", "connect"} {
+				if strings.HasPrefix(command, prefix) {
+					hasPrefix = true
+					break
+				}
+			}
+
+			if !hasPrefix {
+				// In AI-first mode, treat it as an AI query by default
+				cmd := &nlp.Command{
+					Type:       nlp.CommandTypeAI,
+					Intent:     command,
+					Parameters: make(map[string]string),
+					RawInput:   command,
+				}
+				result, err := exec.Execute(cmd)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
+					os.Exit(1)
+				}
+				term.Display(result)
+				os.Exit(0)
+			}
+		}
 
 		// Special handling for commands with specific prefixes
 		if strings.HasPrefix(command, "lumo:") || strings.HasPrefix(command, "shell:") {

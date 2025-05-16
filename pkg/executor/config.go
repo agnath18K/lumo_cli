@@ -47,6 +47,10 @@ func (e *Executor) executeConfigCommand(cmd *nlp.Command) (*Result, error) {
    • config:ollama set <url>        Set Ollama URL
    • config:ollama test             Test connection to Ollama server
 
+   • config:mode show               Show current input mode
+   • config:mode ai                 Set AI-first mode (default)
+   • config:mode command            Set command-first mode
+
 ╰──────────────────────────────────────────────────────────╯
 `,
 			IsError:    false,
@@ -64,6 +68,8 @@ func (e *Executor) executeConfigCommand(cmd *nlp.Command) (*Result, error) {
 		return e.handleKeyConfig(parts[1:], cmd)
 	case "ollama":
 		return e.handleOllamaConfig(parts[1:], cmd)
+	case "mode":
+		return e.handleModeConfig(parts[1:], cmd)
 	default:
 		return &Result{
 			Output:     fmt.Sprintf("Unknown configuration command: %s\nUse 'config:' for help.", parts[0]),
@@ -500,6 +506,91 @@ func (e *Executor) handleOllamaConfig(args []string, cmd *nlp.Command) (*Result,
 	default:
 		return &Result{
 			Output:     fmt.Sprintf("Unknown Ollama command: %s. Use 'show', 'set', or 'test'.", args[0]),
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+}
+
+// handleModeConfig handles input mode configuration commands
+func (e *Executor) handleModeConfig(args []string, cmd *nlp.Command) (*Result, error) {
+	if len(args) == 0 {
+		return &Result{
+			Output:     "Missing mode command. Use 'show', 'ai', or 'command'.",
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+
+	switch args[0] {
+	case "show":
+		// Show current mode
+		modeStr := "AI-first"
+		if e.config.CommandFirstMode {
+			modeStr = "Command-first"
+		}
+
+		output := fmt.Sprintf(`
+╭─────────────────── 🔧 Input Mode ─────────────────────────╮
+
+  Current input mode: %s
+
+  • AI-first mode: Treats all input as AI queries by default
+    unless it starts with a specific command prefix.
+
+  • Command-first mode: Treats input as shell commands if it
+    looks like a command, otherwise as an AI query.
+
+╰──────────────────────────────────────────────────────────╯
+`, modeStr)
+
+		return &Result{
+			Output:     output,
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	case "ai":
+		// Set AI-first mode
+		e.config.CommandFirstMode = false
+
+		// Save the configuration
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		return &Result{
+			Output:     "Input mode set to AI-first. Lumo will now treat all input as AI queries by default unless it starts with a specific command prefix.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	case "command":
+		// Set Command-first mode
+		e.config.CommandFirstMode = true
+
+		// Save the configuration
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		return &Result{
+			Output:     "Input mode set to Command-first. Lumo will now treat input as shell commands if it looks like a command, otherwise as an AI query.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	default:
+		return &Result{
+			Output:     fmt.Sprintf("Unknown mode command: %s. Use 'show', 'ai', or 'command'.", args[0]),
 			IsError:    true,
 			CommandRun: cmd.RawInput,
 		}, nil

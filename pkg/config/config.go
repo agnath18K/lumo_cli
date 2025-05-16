@@ -22,6 +22,7 @@ type Config struct {
 	MaxHistorySize           int  `json:"max_history_size"`
 	EnableLogging            bool `json:"enable_logging"`
 	EnableShellInInteractive bool `json:"enable_shell_in_interactive"`
+	CommandFirstMode         bool `json:"command_first_mode"`
 
 	// Agent mode settings
 	EnableAgentMode             bool   `json:"enable_agent_mode"`
@@ -61,6 +62,7 @@ func DefaultConfig() *Config {
 		MaxHistorySize:              1000,
 		EnableLogging:               true,
 		EnableShellInInteractive:    false,    // Shell commands disabled in interactive mode by default
+		CommandFirstMode:            false,    // Default to AI-first mode (treat input as AI queries by default)
 		EnableAgentMode:             true,     // Agent mode enabled by default
 		EnableAgentREPL:             true,     // REPL mode enabled by default
 		AgentConfirmBeforeExecution: true,     // Confirm before execution by default

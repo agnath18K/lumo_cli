@@ -203,24 +203,36 @@ func (p *Parser) Parse(input string) (*Command, error) {
 	// Check if this is a command-line argument (first argument is the program name)
 	args := os.Args
 	if len(args) > 1 && input == strings.Join(args[1:], " ") {
-		// Check if the input looks like a natural language query
-		// Natural language queries typically:
-		// 1. Start with a capital letter (questions, sentences)
-		// 2. Contain multiple words with spaces
-		// 3. End with a question mark (for questions)
-		// 4. Don't contain shell command special characters like |, >, <, etc.
+		// Split the input into words
+		words := strings.Fields(input)
 
-		// If it looks like a natural language query, treat it as an AI query
-		if isNaturalLanguageQuery(input) {
-			cmd.Type = CommandTypeAI
+		// Check if it's a single word that exists as an executable in PATH
+		if len(words) == 1 {
+			_, err := exec.LookPath(words[0])
+			if err == nil && p.config.CommandFirstMode {
+				// It's a single word that exists as a command and we're in command-first mode
+				cmd.Type = CommandTypeShell
+				cmd.Intent = input
+				return cmd, nil
+			}
+		}
+
+		// If we're in command-first mode, check if it looks like a natural language query
+		if p.config.CommandFirstMode {
+			// If it looks like a natural language query, treat it as an AI query
+			if IsNaturalLanguageQuery(input) {
+				cmd.Type = CommandTypeAI
+				cmd.Intent = input
+				return cmd, nil
+			}
+
+			// Otherwise, treat it as a shell command in command-first mode
+			cmd.Type = CommandTypeShell
 			cmd.Intent = input
 			return cmd, nil
 		}
 
-		// Otherwise, treat it as a shell command
-		cmd.Type = CommandTypeShell
-		cmd.Intent = input
-		return cmd, nil
+		// In AI-first mode (default), we treat everything as AI query unless it's a specific exception
 	}
 
 	// Check if this looks like a speed test query
@@ -230,7 +242,7 @@ func (p *Parser) Parse(input string) (*Command, error) {
 		return cmd, nil
 	}
 
-	// Check if this looks like a task that should use agent mode
+	// In AI-first mode, check if this looks like a task that should use agent mode
 	if isAgentTask(input) && p.config.EnableAgentMode {
 		cmd.Type = CommandTypeAgent
 		cmd.Intent = input
@@ -243,9 +255,9 @@ func (p *Parser) Parse(input string) (*Command, error) {
 	return cmd, nil
 }
 
-// isNaturalLanguageQuery determines if a string is likely to be a natural language query
-// rather than a shell command
-func isNaturalLanguageQuery(input string) bool {
+// IsNaturalLanguageQuery determines if a string is likely to be a natural language query
+// rather than a shell command. This is exported for use in other packages.
+func IsNaturalLanguageQuery(input string) bool {
 	// Trim the input
 	input = strings.TrimSpace(input)
 
@@ -300,6 +312,22 @@ func isNaturalLanguageQuery(input string) bool {
 		firstWord := strings.ToLower(words[0])
 		for _, word := range questionWords {
 			if firstWord == word {
+				return true
+			}
+		}
+	}
+
+	// Check for common action verbs that are likely part of natural language queries
+	// but might be confused with shell commands
+	actionVerbs := []string{"create", "find", "list", "show", "get", "make", "setup", "install",
+		"configure", "backup", "search", "organize", "clean", "delete", "remove", "update", "check", "analyze"}
+
+	if len(words) > 1 {
+		firstWord := strings.ToLower(words[0])
+		for _, verb := range actionVerbs {
+			if firstWord == verb {
+				// If it's an action verb followed by at least one more word, it's likely a natural language query
+				// e.g., "create folder" is a natural language query, not a shell command
 				return true
 			}
 		}
