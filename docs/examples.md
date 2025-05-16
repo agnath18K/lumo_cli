@@ -84,9 +84,11 @@ lumo chat
 
 # Ask a direct question in chat format
 lumo chat:Tell me about Linux file permissions
+lumo talk:Tell me about Linux file permissions
 
-# Ask a specific question
+# Ask a specific question without entering chat mode
 lumo ask:What is the capital of France?
+lumo ai:What is the capital of France?
 ```
 
 ### Chat Mode Commands
@@ -149,10 +151,18 @@ lumo health:disk
 lumo health:cpu
 lumo health:network
 
+# Alternative syntax for health commands
+lumo syshealth:memory
+lumo syshealth:disk
+
 # Generate a report with specific focus
 lumo report:performance
 lumo report:security
 lumo report:storage
+
+# Alternative syntax for report commands
+lumo sysreport:performance
+lumo sysreport:security
 ```
 
 ## Internet Speed Testing
@@ -166,6 +176,10 @@ lumo speed:download
 
 # Test only upload speed
 lumo speed:upload
+
+# Alternative syntax for speed tests
+lumo speedtest:download
+lumo speed-test:upload
 
 # Test with natural language
 lumo "check my internet speed"
@@ -205,6 +219,45 @@ lumo create:"Flutter app with provider state management"
 
 # Create a Flutter project with Riverpod
 lumo create:"Flutter app with riverpod state management"
+
+# Create a Next.js project with Redux
+lumo create:"Next.js app with Redux state management"
+
+# Create a Next.js project with Context API
+lumo create:"Next.js project with Context API"
+
+# Create a Next.js project with Zustand
+lumo create:"Next.js application using Zustand for state"
+
+# Create a basic Next.js project without specific state management
+lumo create:"Simple Next.js project"
+
+# Create a React project with Redux
+lumo create:"React app with Redux state management"
+
+# Create a React project with Context API
+lumo create:"React project with Context API"
+
+# Create a React project with MobX
+lumo create:"React application using MobX for state"
+
+# Create a React project with Recoil
+lumo create:"React app with Recoil state management"
+
+# Create a basic React project without specific state management
+lumo create:"Simple React project"
+
+# Create a FastAPI project
+lumo create:"FastAPI project with SQLAlchemy"
+
+# Create a FastAPI project with specific options
+lumo create:"Create a FastAPI REST API for a blog"
+
+# Create a Flask project
+lumo create:"Flask web application"
+
+# Create a Flask project with specific options
+lumo create:"Create a Flask app with SQLAlchemy and authentication"
 
 # Show help for the create command
 lumo create
@@ -286,6 +339,31 @@ cat data.json | lumo
 
 # Analyze CSV data
 cat data.csv | lumo
+```
+
+## File Transfer with Connect
+
+```bash
+# Start a server to receive files
+lumo connect --receive
+
+# Start a server on a specific port
+lumo connect --receive --port 9000
+
+# Specify a custom download directory
+lumo connect --receive --path ~/Downloads/transfers
+
+# Connect to a peer to send/receive files
+lumo connect 192.168.1.5
+
+# Connect to a peer on a specific port
+lumo connect 192.168.1.5:9000
+
+# Connect to a peer with a custom download directory
+lumo connect 192.168.1.5 --path ~/Downloads/transfers
+
+# Show connect command help
+lumo connect --help
 ```
 
 ## Command-Line Options

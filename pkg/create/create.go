@@ -110,6 +110,12 @@ func (g *Generator) generateProject(projectType, framework string, options map[s
 	switch projectType {
 	case "flutter":
 		return generateFlutterProject(framework, options)
+	case "nextjs":
+		return generateNextJSProject(framework, options)
+	case "react":
+		return generateReactProject(framework, options)
+	case "fastapi", "flask", "python":
+		return generatePythonProject(framework, options)
 	// Add more project types here as needed
 	default:
 		return "", fmt.Errorf("unsupported project type: %s", projectType)
@@ -129,9 +135,18 @@ func (g *Generator) showHelp() string {
 │  Examples:                                                 │
 │    lumo create:"Flutter app with bloc architecture"        │
 │    lumo create:"Flutter app with provider state management"│
+│    lumo create:"Next.js app with Redux"                    │
+│    lumo create:"Next.js project with Context API"          │
+│    lumo create:"React app with MobX state management"      │
+│    lumo create:"React project with Recoil"                 │
+│    lumo create:"FastAPI project with SQLAlchemy"           │
+│    lumo create:"Flask web application"                     │
 │                                                            │
 │  Supported Frameworks:                                     │
 │    • Flutter (with Bloc, Provider, Riverpod)               │
+│    • Next.js (with Redux, Context API, Zustand)            │
+│    • React (with Redux, Context API, MobX, Recoil)         │
+│    • Python (FastAPI, Flask)                               │
 │                                                            │
 ╰────────────────────────────────────────────────────────────╯
 `
