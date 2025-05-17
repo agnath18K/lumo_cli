@@ -1,9 +1,0 @@
-#!/bin/sh
-# prerm script for lumo
-
-set -e
-
-# Clean up any temporary files if needed
-# (none for now)
-
-exit 0

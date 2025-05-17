@@ -40,11 +40,6 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 ### Quick Install
 
 ```bash
-# From source
-git clone https://github.com/agnath18K/lumo_cli.git
-cd lumo_cli
-make build
-sudo make install
 
 # Using pre-built binary (Linux)
 curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.1/lumo_1.0.1_linux_amd64.tar.gz -o lumo.tar.gz

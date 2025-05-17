@@ -1,0 +1,420 @@
+.TH LUMO 1 "May 2024" "Lumo 1.0.1" "User Commands"
+
+.SH NAME
+lumo \- AI-powered CLI assistant
+
+.SH SYNOPSIS
+.B lumo
+[\fIOPTIONS\fR]
+[\fICOMMAND\fR]
+[\fIARGUMENTS\fR]
+
+.SH DESCRIPTION
+.B Lumo
+is an intelligent CLI assistant that interprets natural language to help you navigate the terminal with ease. It bridges the gap between natural language and terminal commands using advanced AI models.
+
+Lumo can process natural language queries, execute shell commands, provide system information, run internet speed tests, manage clipboard operations, create projects from templates, and more.
+
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Display help information and exit.
+.TP
+.BR \-v ", " \-\-version
+Display version information and exit.
+
+.SH COMMANDS
+Lumo supports various command prefixes that determine how your input is processed:
+
+.SS Natural Language Queries
+When no specific prefix is used, Lumo treats your input as a natural language query:
+.PP
+.B lumo "\fIYour question here\fR"
+
+.SS Agent Mode
+Agent mode allows Lumo to execute a sequence of commands autonomously:
+.TP
+.B lumo auto:\fITASK\fR
+.TP
+.B lumo agent:\fITASK\fR
+Execute a sequence of commands as an agent to accomplish the specified task.
+
+.SS Chat Mode
+Chat mode provides a conversational interface:
+.TP
+.B lumo chat
+Start interactive chat mode.
+.TP
+.B lumo chat:\fIMESSAGE\fR
+.TP
+.B lumo talk:\fIMESSAGE\fR
+Start or continue a conversation with the specified message.
+.TP
+.B lumo ask:\fIQUESTION\fR
+.TP
+.B lumo ai:\fIQUESTION\fR
+Ask a specific question without entering chat mode.
+
+.SS Shell Commands
+Execute shell commands directly:
+.TP
+.B lumo lumo:\fICOMMAND\fR
+.TP
+.B lumo shell:\fICOMMAND\fR
+Execute the specified shell command.
+
+.SS System Health
+Check system health and generate reports:
+.TP
+.B lumo health
+Get a basic health report.
+.TP
+.B lumo system
+Get a detailed system report.
+.TP
+.B lumo health:\fICOMPONENT\fR
+.TP
+.B lumo syshealth:\fICOMPONENT\fR
+Check a specific system component (memory, disk, cpu, network).
+.TP
+.B lumo report:\fITYPE\fR
+.TP
+.B lumo sysreport:\fITYPE\fR
+Generate a report with specific focus (performance, security, storage).
+
+.SS Internet Speed Testing
+Test your internet connection speed:
+.TP
+.B lumo speed
+Run a complete speed test.
+.TP
+.B lumo speed:\fITYPE\fR
+.TP
+.B lumo speedtest:\fITYPE\fR
+.TP
+.B lumo speed-test:\fITYPE\fR
+Test a specific aspect of your connection (download, upload).
+
+.SS Clipboard Operations
+Manage clipboard content:
+.TP
+.B lumo clipboard
+Show current clipboard contents.
+.TP
+.B lumo clipboard "\fITEXT\fR"
+Copy text to clipboard.
+.TP
+.B lumo clipboard append "\fITEXT\fR"
+Append text to existing clipboard content.
+.TP
+.B lumo clipboard clear
+Clear clipboard contents.
+
+.SS Project Creation
+Create new projects from templates:
+.TP
+.B lumo create
+Show help for the create command.
+.TP
+.B lumo create:"\fIDESCRIPTION\fR"
+Create a new project based on the description.
+
+.SS Magic Commands
+Run fun magic commands:
+.TP
+.B lumo magic:\fICOMMAND\fR
+Execute a magic command (e.g., dance, help).
+
+.SS Configuration Commands
+Configure Lumo settings:
+.TP
+.B lumo config:provider list
+List available AI providers.
+.TP
+.B lumo config:provider show
+Show current AI provider.
+.TP
+.B lumo config:provider set \fIPROVIDER\fR
+Set AI provider (gemini, openai, ollama).
+.TP
+.B lumo config:model list
+List available models for the current provider.
+.TP
+.B lumo config:model show
+Show current model.
+.TP
+.B lumo config:model set \fIMODEL\fR
+Set model for current provider.
+.TP
+.B lumo config:key show
+Show API key status.
+.TP
+.B lumo config:key set \fIPROVIDER\fR \fIKEY\fR
+Set API key for a provider.
+.TP
+.B lumo config:key remove \fIPROVIDER\fR
+Remove API key for a provider.
+.TP
+.B lumo config:ollama show
+Show current Ollama URL.
+.TP
+.B lumo config:ollama set \fIURL\fR
+Set Ollama URL.
+.TP
+.B lumo config:ollama test
+Test connection to Ollama server.
+
+.SS File Transfer with Connect
+Transfer files between machines:
+.TP
+.B lumo connect \-\-receive
+Start a server to receive files.
+.TP
+.B lumo connect \-\-receive \-\-port \fIPORT\fR
+Start a server on a specific port.
+.TP
+.B lumo connect \-\-receive \-\-path \fIDIRECTORY\fR
+Specify a custom download directory.
+.TP
+.B lumo connect \fIIP_ADDRESS\fR
+Connect to a peer to send/receive files.
+.TP
+.B lumo connect \fIIP_ADDRESS\fR:\fIPORT\fR
+Connect to a peer on a specific port.
+.TP
+.B lumo connect \fIIP_ADDRESS\fR \-\-path \fIDIRECTORY\fR
+Connect to a peer with a custom download directory.
+.TP
+.B lumo connect \-\-help
+Show connect command help.
+
+.SS Pipe Support
+Analyze command output by piping it to Lumo:
+.PP
+\fICOMMAND\fR | \fBlumo\fR
+
+.SH AGENT MODE REPL COMMANDS
+When in the Agent Mode REPL interface, the following commands are available:
+.TP
+.B run
+Execute the current plan.
+.TP
+.B refine \fIPROMPT\fR
+Modify the plan using natural language.
+.TP
+.B add \fICOMMAND\fR
+Add a new step to the plan.
+.TP
+.B edit \fINUM\fR
+Edit a specific step in the plan.
+.TP
+.B delete \fINUM\fR
+Remove a step from the plan.
+.TP
+.B move \fINUM\fR \fIPOS\fR
+Reorder steps in the plan.
+.TP
+.B help
+Show available commands.
+.TP
+.B exit
+Exit without executing.
+
+.SH CHAT MODE COMMANDS
+When in the interactive Chat Mode, the following commands are available:
+.TP
+.B \fIMESSAGE\fR
+Send a message to the AI.
+.TP
+.B help
+Show help information.
+.TP
+.B clear
+Clear conversation history.
+.TP
+.B history
+Display conversation history.
+.TP
+.B new
+Start a new conversation.
+.TP
+.B list
+List all conversations.
+.TP
+.B switch \fIID\fR
+Switch to another conversation.
+.TP
+.B delete \fIID\fR
+Delete a conversation.
+.TP
+.B exit
+Exit chat mode.
+
+.SH EXAMPLES
+.SS Natural Language Queries
+.PP
+.nf
+# Get help with finding files
+lumo "How do I find files by content in Linux?"
+
+# Get help with a specific command
+lumo "How to use grep with regular expressions?"
+
+# Get explanations for technical concepts
+lumo "What's the difference between TCP and UDP?"
+.fi
+
+.SS Agent Mode
+.PP
+.nf
+# Create a backup of documents
+lumo auto:create a backup of my documents folder
+
+# Find and analyze large files
+lumo agent:find all large files in the current directory and show their types
+
+# Set up a development environment
+lumo agent:set up a python virtual environment with flask and sqlalchemy
+.fi
+
+.SS Chat Mode
+.PP
+.nf
+# Start interactive chat mode
+lumo chat
+
+# Ask a direct question in chat format
+lumo chat:Tell me about Linux file permissions
+
+# Ask a specific question without entering chat mode
+lumo ask:What is the capital of France?
+.fi
+
+.SS Shell Commands
+.PP
+.nf
+# Execute a shell command directly
+lumo lumo:ls -la
+
+# Execute another shell command
+lumo shell:find . -name "*.go" -type f
+.fi
+
+.SS System Health
+.PP
+.nf
+# Get a basic health report
+lumo health
+
+# Check specific system components
+lumo health:memory
+lumo health:disk
+
+# Generate a report with specific focus
+lumo report:performance
+.fi
+
+.SS Internet Speed Testing
+.PP
+.nf
+# Run a complete speed test
+lumo speed
+
+# Test only download speed
+lumo speed:download
+
+# Test only upload speed
+lumo speed:upload
+.fi
+
+.SS Clipboard Operations
+.PP
+.nf
+# Show current clipboard contents
+lumo clipboard
+
+# Copy text to clipboard
+lumo clipboard "Hello World"
+
+# Append text to existing clipboard content
+lumo clipboard append "More text"
+.fi
+
+.SS Project Creation
+.PP
+.nf
+# Create a Flutter project with BLoC architecture
+lumo create:"Flutter app with bloc architecture"
+
+# Create a Next.js project with Redux
+lumo create:"Next.js app with Redux state management"
+
+# Create a FastAPI project
+lumo create:"FastAPI project with SQLAlchemy"
+.fi
+
+.SS File Transfer with Connect
+.PP
+.nf
+# Start a server to receive files
+lumo connect --receive
+
+# Connect to a peer to send/receive files
+lumo connect 192.168.1.5
+
+# Connect to a peer on a specific port
+lumo connect 192.168.1.5:9000
+.fi
+
+.SS Pipe Support
+.PP
+.nf
+# Analyze directory contents
+ls -la | lumo
+
+# Explain error logs
+cat error.log | lumo
+
+# Analyze JSON data
+cat data.json | lumo
+.fi
+
+.SH FILES
+.TP
+.I ~/.config/lumo/config.json
+Configuration file that stores user preferences, API keys, and other settings.
+
+.SH ENVIRONMENT
+.TP
+.B LUMO_AI_PROVIDER
+Sets the AI provider to use (gemini, openai, ollama).
+.TP
+.B LUMO_GEMINI_API_KEY
+Sets the API key for Google Gemini.
+.TP
+.B LUMO_OPENAI_API_KEY
+Sets the API key for OpenAI.
+.TP
+.B LUMO_OLLAMA_URL
+Sets the URL for the Ollama server.
+.TP
+.B LUMO_ENABLE_AGENT_MODE
+Enables or disables agent mode.
+.TP
+.B LUMO_DEBUG
+Enables or disables debug mode.
+
+.SH SEE ALSO
+.BR curl (1),
+.BR jq (1),
+.BR grep (1),
+.BR find (1)
+
+.SH BUGS
+Report bugs to: https://github.com/agnath18/lumo/issues
+
+.SH AUTHOR
+Written by agnath18K <agnath18@gmail.com>
+
+.SH COPYRIGHT
+Copyright © 2024 agnath18K. License MIT: <https://opensource.org/licenses/MIT>.

@@ -24,7 +24,10 @@ builds:
       - -X github.com/agnath18/lumo/pkg/version.BuildDate={{.Date}}
       - -X github.com/agnath18/lumo/pkg/version.GitCommit={{.ShortCommit}}
       - -X github.com/agnath18/lumo/pkg/version.GoVersion={{.Env.GOVERSION}}
+      - -extldflags '-Wl,-z,relro -Wl,-z,now'
     binary: lumo
+    flags:
+      - -buildmode=pie
 
 archives:
   - format: tar.gz
@@ -45,9 +48,16 @@ nfpms:
   - package_name: lumo
     file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
     vendor: agnath18K
-    homepage: https://github.com/agnath18K/lumo
+    homepage: https://github.com/agnath18K/lumo_cli
     maintainer: agnath18K <agnath18@gmail.com>
-    description: AI-powered CLI assistant
+    description: |
+      AI-powered CLI assistant
+
+      Lumo is an AI-powered CLI assistant in Go that interprets
+      natural language to execute commands. It helps users find
+      relevant terminal commands and provides guidance for
+      terminal tasks. Lumo integrates with Gemini, OpenAI, and
+      Ollama APIs.
     license: MIT
     formats:
       - deb
@@ -56,8 +66,21 @@ nfpms:
     contents:
       - src: README.md
         dst: /usr/share/doc/lumo/README.md
+      - src: docs/examples.md
+        dst: /usr/share/doc/lumo/examples.md
+      - src: debian/lumo.1
+        dst: /usr/share/man/man1/lumo.1
+      - type: dir
+        src: var/log/lumo
+        dst: /var/log/lumo
+        file_info:
+          mode: 0755
     section: utils
     priority: optional
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
+        - changelog-file-missing-in-native-package
 
 checksum:
   name_template: 'checksums.txt'

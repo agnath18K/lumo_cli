@@ -54,8 +54,8 @@ jobs:
           BUILD_DATE=$(date +%Y-%m-%d)
           GIT_COMMIT=$(git rev-parse --short HEAD)
           GO_VERSION=$(go version | awk '{print $3}')
-          LDFLAGS="-X github.com/agnath18/lumo/pkg/version.Version=${VERSION} -X github.com/agnath18/lumo/pkg/version.BuildDate=${BUILD_DATE} -X github.com/agnath18/lumo/pkg/version.GitCommit=${GIT_COMMIT} -X github.com/agnath18/lumo/pkg/version.GoVersion=${GO_VERSION}"
-          go build -ldflags "${LDFLAGS}" -o build/lumo cmd/lumo/main.go
+          LDFLAGS="-X github.com/agnath18K/lumo/pkg/version.Version=${VERSION} -X github.com/agnath18K/lumo/pkg/version.BuildDate=${BUILD_DATE} -X github.com/agnath18K/lumo/pkg/version.GitCommit=${GIT_COMMIT} -X github.com/agnath18K/lumo/pkg/version.GoVersion=${GO_VERSION} -extldflags '-Wl,-z,relro -Wl,-z,now'"
+          go build -buildmode=pie -ldflags "${LDFLAGS}" -o build/lumo cmd/lumo/main.go
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

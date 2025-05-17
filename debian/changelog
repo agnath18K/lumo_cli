@@ -1,0 +1,9 @@
+lumo (1.0.1-1) unstable; urgency=medium
+
+  * Initial release
+  * AI-powered CLI assistant in Go
+  * Supports natural language queries
+  * Integrates with Gemini, OpenAI, and Ollama APIs
+  * Added 'create:' command for generating projects
+
+ -- agnath18K <agnath18@gmail.com>  Sat, 17 May 2025 15:07:00 +0530

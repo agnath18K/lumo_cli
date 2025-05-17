@@ -1,0 +1,59 @@
+.TH LUMO 1 "May 2025" "lumo 1.0.1" "User Commands"
+.SH NAME
+lumo \- AI-powered CLI assistant
+.SH SYNOPSIS
+.B lumo
+[\fIOPTIONS\fR] [\fICOMMAND\fR]
+.SH DESCRIPTION
+.B lumo
+is an AI-powered CLI assistant in Go that interprets natural language to execute commands.
+It helps users find relevant terminal commands and provides guidance for terminal tasks.
+Lumo integrates with Gemini, OpenAI, and Ollama APIs.
+.SH OPTIONS
+.TP
+.B \-\-version
+Show version information and exit.
+.TP
+.B \-\-help
+Show help message and exit.
+.TP
+.B \-\-config \fIFILE\fR
+Use the specified configuration file.
+.SH COMMANDS
+.TP
+.B ask:\fIQUERY\fR
+Ask a natural language query to get information or guidance.
+.TP
+.B agent:\fIQUERY\fR
+Activate agent mode to execute commands based on the query.
+.TP
+.B auto:\fIQUERY\fR
+Activate agent mode with automatic execution of commands.
+.TP
+.B create:\fIFRAMEWORK\fR \fIQUERY\fR
+Generate a project for the specified framework based on the query.
+Supported frameworks include Flutter, Next.js, React, FastAPI, and Flask.
+.SH EXAMPLES
+.TP
+.B lumo "how to find large files"
+Get information about finding large files.
+.TP
+.B lumo ask:"how to compress images"
+Get information about compressing images.
+.TP
+.B lumo agent:"create a backup of my home directory"
+Get a command to create a backup of the home directory.
+.TP
+.B lumo create:flutter "a todo app with authentication"
+Generate a Flutter project for a todo app with authentication.
+.SH FILES
+.TP
+.B ~/.config/lumo/config.json
+Default configuration file.
+.SH AUTHOR
+Written by agnath18K <agnath18@gmail.com>.
+.SH COPYRIGHT
+Copyright \(co 2024 agnath18
+License: MIT
+.SH SEE ALSO
+Full documentation at: <https://github.com/agnath18K/lumo_cli>

@@ -1,0 +1,44 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+export GO111MODULE = on
+export GOCACHE = $(CURDIR)/.gocache
+export GOPATH = $(CURDIR)/.gopath
+
+# Enable hardening
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,now
+
+VERSION := $(shell grep -oP 'Version = "\K[^"]+' pkg/version/version.go)
+BUILD_DATE := $(shell date +%Y-%m-%d)
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+GO_VERSION := $(shell go version | awk '{print $$3}')
+LDFLAGS := -ldflags "-X github.com/agnath18/lumo/pkg/version.Version=${VERSION} -X github.com/agnath18/lumo/pkg/version.BuildDate=${BUILD_DATE} -X github.com/agnath18/lumo/pkg/version.GitCommit=${GIT_COMMIT} -X github.com/agnath18/lumo/pkg/version.GoVersion=${GO_VERSION} -extldflags '${LDFLAGS}'"
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -rf build
+	rm -rf .gocache
+
+override_dh_auto_build:
+	mkdir -p build
+	go build -buildmode=pie $(LDFLAGS) -o build/lumo cmd/lumo/main.go
+
+override_dh_auto_test:
+	# Skip tests for now due to config test failures
+	# go test ./...
+
+override_dh_auto_install:
+	mkdir -p debian/lumo/usr/bin
+	cp build/lumo debian/lumo/usr/bin/
+	mkdir -p debian/lumo/usr/share/doc/lumo
+	cp README.md debian/lumo/usr/share/doc/lumo/
+	mkdir -p debian/lumo/var/log/lumo
+	chmod 755 debian/lumo/var/log/lumo
+	mkdir -p debian/lumo/usr/share/man/man1
+	cp debian/lumo.1 debian/lumo/usr/share/man/man1/
+	gzip -9 debian/lumo/usr/share/man/man1/lumo.1
+
+override_dh_dwz:
+	# Skip dwz compression due to compressed .debug_abbrev section

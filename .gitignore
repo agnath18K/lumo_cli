@@ -1,2 +1,22 @@
-build/logs/
+# Build artifacts
+build/
 logs/
+*.deb
+*.changes
+*.buildinfo
+*.dsc
+*.tar.gz
+*.tar.xz
+
+# Debian build artifacts
+debian/lumo/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.log
+
+# Go build artifacts
+.gocache/
+.gopath/
+.gocache/
