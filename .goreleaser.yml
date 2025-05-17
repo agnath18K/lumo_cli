@@ -20,10 +20,10 @@ builds:
     main: ./cmd/lumo/main.go
     ldflags:
       - -s -w
-      - -X github.com/agnath18/lumo/pkg/version.Version={{.Version}}
-      - -X github.com/agnath18/lumo/pkg/version.BuildDate={{.Date}}
-      - -X github.com/agnath18/lumo/pkg/version.GitCommit={{.ShortCommit}}
-      - -X github.com/agnath18/lumo/pkg/version.GoVersion={{.Env.GOVERSION}}
+      - -X github.com/agnath18K/lumo/pkg/version.Version={{.Version}}
+      - -X github.com/agnath18K/lumo/pkg/version.BuildDate={{.Date}}
+      - -X github.com/agnath18K/lumo/pkg/version.GitCommit={{.ShortCommit}}
+      - -X github.com/agnath18K/lumo/pkg/version.GoVersion={{.Env.GOVERSION}}
       - -extldflags '-Wl,-z,relro -Wl,-z,now'
     binary: lumo
     flags:

@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/utils"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/utils"
 )
 
 // Feedback handles user interaction and feedback

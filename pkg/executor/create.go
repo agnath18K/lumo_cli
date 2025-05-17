@@ -3,9 +3,9 @@ package executor
 import (
 	"fmt"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/create"
-	"github.com/agnath18/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/create"
+	"github.com/agnath18K/lumo/pkg/nlp"
 )
 
 // executeCreateCommand executes a project creation command
@@ -43,7 +43,7 @@ func (e *Executor) executeCreateCommand(cmd *nlp.Command) (*Result, error) {
 
 	// Create a project generator
 	generator := create.NewGenerator(e.aiClient)
-	
+
 	// Execute the create command
 	output, err := generator.Execute(cmd.Intent)
 	if err != nil {
@@ -53,7 +53,7 @@ func (e *Executor) executeCreateCommand(cmd *nlp.Command) (*Result, error) {
 			CommandRun: cmd.RawInput,
 		}, nil
 	}
-	
+
 	return &Result{
 		Output:     output,
 		IsError:    false,

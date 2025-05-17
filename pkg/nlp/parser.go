@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/config"
 )
 
 // Command represents a parsed command with its type and parameters

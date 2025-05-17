@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/chat"
-	"github.com/agnath18/lumo/pkg/clipboard"
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/magic"
-	"github.com/agnath18/lumo/pkg/nlp"
-	"github.com/agnath18/lumo/pkg/setup"
-	"github.com/agnath18/lumo/pkg/system"
-	"github.com/agnath18/lumo/pkg/utils"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/chat"
+	"github.com/agnath18K/lumo/pkg/clipboard"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/magic"
+	"github.com/agnath18K/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/setup"
+	"github.com/agnath18K/lumo/pkg/system"
+	"github.com/agnath18K/lumo/pkg/utils"
 )
 
 // Result represents the output of a command execution

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/executor"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/executor"
 )
 
 // Agent represents the auto command executor

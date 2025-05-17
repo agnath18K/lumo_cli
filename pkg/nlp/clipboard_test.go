@@ -3,7 +3,7 @@ package nlp
 import (
 	"testing"
 
-	"github.com/agnath18/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/config"
 )
 
 func TestParser_Parse_Clipboard(t *testing.T) {

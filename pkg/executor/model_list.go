@@ -3,8 +3,8 @@ package executor
 import (
 	"fmt"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/nlp"
 )
 
 // handleModelList handles the model list command

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/nlp"
-	"github.com/agnath18/lumo/pkg/speedtest"
-	"github.com/agnath18/lumo/pkg/utils"
+	"github.com/agnath18K/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/speedtest"
+	"github.com/agnath18K/lumo/pkg/utils"
 )
 
 // executeSpeedTest performs an internet speed test

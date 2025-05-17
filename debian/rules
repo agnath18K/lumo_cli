@@ -12,7 +12,7 @@ VERSION := $(shell grep -oP 'Version = "\K[^"]+' pkg/version/version.go)
 BUILD_DATE := $(shell date +%Y-%m-%d)
 GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 GO_VERSION := $(shell go version | awk '{print $$3}')
-LDFLAGS := -ldflags "-X github.com/agnath18/lumo/pkg/version.Version=${VERSION} -X github.com/agnath18/lumo/pkg/version.BuildDate=${BUILD_DATE} -X github.com/agnath18/lumo/pkg/version.GitCommit=${GIT_COMMIT} -X github.com/agnath18/lumo/pkg/version.GoVersion=${GO_VERSION} -extldflags '${LDFLAGS}'"
+LDFLAGS := -ldflags "-X github.com/agnath18K/lumo/pkg/version.Version=${VERSION} -X github.com/agnath18K/lumo/pkg/version.BuildDate=${BUILD_DATE} -X github.com/agnath18K/lumo/pkg/version.GitCommit=${GIT_COMMIT} -X github.com/agnath18K/lumo/pkg/version.GoVersion=${GO_VERSION} -extldflags '${LDFLAGS}'"
 
 %:
 	dh $@

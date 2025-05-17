@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/utils"
+	"github.com/agnath18K/lumo/pkg/utils"
 )
 
 // SpeedTestResult represents the result of a speed test

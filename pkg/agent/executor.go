@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/config"
 )
 
 // Executor handles the execution of plans

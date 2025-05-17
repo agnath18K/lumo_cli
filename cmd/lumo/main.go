@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/agent"
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/executor"
-	"github.com/agnath18/lumo/pkg/nlp"
-	"github.com/agnath18/lumo/pkg/pipe"
-	"github.com/agnath18/lumo/pkg/terminal"
-	"github.com/agnath18/lumo/pkg/utils"
-	"github.com/agnath18/lumo/pkg/version"
+	"github.com/agnath18K/lumo/pkg/agent"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/executor"
+	"github.com/agnath18K/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/pipe"
+	"github.com/agnath18K/lumo/pkg/terminal"
+	"github.com/agnath18K/lumo/pkg/utils"
+	"github.com/agnath18K/lumo/pkg/version"
 )
 
 func main() {

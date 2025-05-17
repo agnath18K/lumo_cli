@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/agnath18/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/ai"
 )
 
 // Manager handles chat conversations
 type Manager struct {
-	conversations     map[string]*Conversation
+	conversations      map[string]*Conversation
 	activeConversation string
-	maxConversations  int
+	maxConversations   int
 	maxMessagesPerConv int
-	mu                sync.Mutex
-	aiClient          ai.Client
+	mu                 sync.Mutex
+	aiClient           ai.Client
 }
 
 // NewManager creates a new chat manager
@@ -29,10 +29,10 @@ func NewManager(aiClient ai.Client, maxConversations, maxMessagesPerConv int) *M
 	}
 
 	return &Manager{
-		conversations:     make(map[string]*Conversation),
-		maxConversations:  maxConversations,
+		conversations:      make(map[string]*Conversation),
+		maxConversations:   maxConversations,
 		maxMessagesPerConv: maxMessagesPerConv,
-		aiClient:          aiClient,
+		aiClient:           aiClient,
 	}
 }
 
@@ -43,16 +43,16 @@ func (m *Manager) StartNewConversation() *Conversation {
 
 	// Create a new conversation with the chat system instructions
 	conv := NewConversation(ai.ChatInstructions, m.maxMessagesPerConv)
-	
+
 	// Add the conversation to the map
 	m.conversations[conv.ID] = conv
-	
+
 	// Set it as the active conversation
 	m.activeConversation = conv.ID
-	
+
 	// Trim conversations if needed
 	m.trimConversationsIfNeeded()
-	
+
 	return conv
 }
 

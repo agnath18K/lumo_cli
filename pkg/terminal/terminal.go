@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/executor"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/executor"
 )
 
 // Terminal handles terminal interaction

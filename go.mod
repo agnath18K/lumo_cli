@@ -1,4 +1,4 @@
-module github.com/agnath18/lumo
+module github.com/agnath18K/lumo
 
 go 1.23.0
 

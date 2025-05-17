@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/executor"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/executor"
 )
 
 // Initialize initializes the agent and registers it with the executor

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/ai"
 )
 
 // Processor handles processing of piped input

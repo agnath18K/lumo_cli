@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/agnath18/lumo/pkg/clipboard"
-	"github.com/agnath18/lumo/pkg/config"
-	"github.com/agnath18/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/clipboard"
+	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/nlp"
 )
 
 // MockClipboardProvider is a mock implementation of the clipboard.ClipboardProvider interface

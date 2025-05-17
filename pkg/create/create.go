@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/ai"
 )
 
 // Generator handles project creation

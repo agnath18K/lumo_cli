@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/ai"
-	"github.com/agnath18/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/ai"
+	"github.com/agnath18K/lumo/pkg/config"
 )
 
 // Planner handles the generation of execution plans

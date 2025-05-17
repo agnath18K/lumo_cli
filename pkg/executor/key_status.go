@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/agnath18/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/nlp"
 )
 
 // handleKeyStatus handles the key status command
@@ -30,7 +30,7 @@ func (e *Executor) handleKeyStatus(cmd *nlp.Command) (*Result, error) {
 	if err == nil {
 		ollamaStatus = "Connected"
 	}
-	
+
 	output := fmt.Sprintf(`
 ╭─────────────────── 🔑 API Key Status ─────────────────────╮
 

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/connect"
-	"github.com/agnath18/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/connect"
+	"github.com/agnath18K/lumo/pkg/nlp"
 )
 
 // executeConnectCommand handles file transfer connections

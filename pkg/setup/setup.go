@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agnath18/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/config"
 )
 
 // APIKeySetup handles interactive setup of API keys
