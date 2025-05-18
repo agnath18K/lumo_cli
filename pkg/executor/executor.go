@@ -251,6 +251,9 @@ func (e *Executor) ExecuteWithReader(cmd *nlp.Command, reader io.Reader) (*Resul
 	case nlp.CommandTypeDesktop:
 		// Execute desktop command
 		return e.executeDesktopCommand(cmd)
+	case nlp.CommandTypeServer:
+		// Execute server command
+		return e.executeServerCommand(cmd)
 	default:
 		return &Result{
 			Output:     "Unknown command type",
@@ -603,6 +606,12 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
 		speedTestStatus = "ENABLED"
 	}
 
+	// Get server status
+	serverStatus := "DISABLED"
+	if e.config.EnableServer {
+		serverStatus = "ENABLED"
+	}
+
 	helpText := fmt.Sprintf(`
 ╭──────────────────── 🐦 Lumo CLI Assistant ──────────────────────╮
 
@@ -628,6 +637,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • connect --help              Show connect command options
    • create:<query>             Create a new project from description
    • desktop:<command>          Execute desktop environment commands
+   • server:<command>           Manage the REST server daemon [%s]
    • config:<options>           Configure Lumo settings
    • version, -v, --version     Show version information
    • help, -h, --help           Show this help
@@ -656,6 +666,8 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • cat file.txt | lumo        Analyze piped content
    • config:model list          List available AI models
    • config:key show            Show API key status
+   • server:start               Start the REST server daemon
+   • server:status              Check if the server is running
    • version                    Show version information
 
   Configuration:
@@ -678,6 +690,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • System health checks: %s
    • System reports: %s
    • Speed test: %s
+   • REST server: %s
    • Current AI provider: %s
    • Current model: %s
 
@@ -693,7 +706,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • Offline mode available with Ollama (config:provider set ollama)
 
 ╰─────────────────────────────────────────────────────────────────────╯
-`, shellStatus, agentStatus, agentStatus, healthStatus, healthStatus, reportStatus, reportStatus, speedTestStatus, shellStatus, agentStatus, replStatus, chatReplStatus, pipeStatus, healthStatus, reportStatus, speedTestStatus, e.config.AIProvider, getCurrentModel(e.config))
+`, shellStatus, agentStatus, agentStatus, healthStatus, healthStatus, reportStatus, reportStatus, speedTestStatus, serverStatus, shellStatus, agentStatus, replStatus, chatReplStatus, pipeStatus, healthStatus, reportStatus, speedTestStatus, serverStatus, e.config.AIProvider, getCurrentModel(e.config))
 
 	return &Result{
 		Output:     helpText,
@@ -722,6 +735,7 @@ func (e *Executor) ShowWelcome() (*Result, error) {
    • lumo auto:"create a backup of my documents"
    • lumo create:"Flutter app with bloc architecture"
    • lumo desktop:"close firefox window"
+   • lumo server:start
    • lumo connect --receive
 
   Type 'help' for full documentation and available commands.
@@ -780,4 +794,89 @@ func (e *Executor) isOllamaAvailable() bool {
 	}
 	_, err := client.Get(e.config.OllamaURL + "/api/tags")
 	return err == nil
+}
+
+// executeServerCommand executes a server command
+func (e *Executor) executeServerCommand(cmd *nlp.Command) (*Result, error) {
+	// Check if server is enabled
+	if !e.config.EnableServer {
+		return &Result{
+			Output:     "Server is disabled. Enable it in the configuration file.",
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+
+	// Parse the command
+	parts := strings.Fields(cmd.Intent)
+	if len(parts) == 0 {
+		// Show help for server commands
+		helpText := `
+╭─────────────────── 🌐 Lumo Server Commands ─────────────────╮
+
+  Available commands:
+   • server:start    - Start the server daemon
+   • server:stop     - Stop the server daemon
+   • server:status   - Check server daemon status
+   • server:help     - Show this help message
+
+  The server runs on port ` + fmt.Sprintf("%d", e.config.ServerPort) + ` by default.
+  You can change this in the configuration file.
+
+╰───────────────────────────────────────────────────────────╯
+`
+		return &Result{
+			Output:     helpText,
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+
+	// Handle the command
+	switch parts[0] {
+	case "start":
+		return &Result{
+			Output:     "Use 'lumo server:start' directly to start the server daemon.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	case "stop":
+		return &Result{
+			Output:     "Use 'lumo server:stop' directly to stop the server daemon.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	case "status":
+		return &Result{
+			Output:     "Use 'lumo server:status' directly to check server daemon status.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	case "help":
+		helpText := `
+╭─────────────────── 🌐 Lumo Server Commands ─────────────────╮
+
+  Available commands:
+   • server:start    - Start the server daemon
+   • server:stop     - Stop the server daemon
+   • server:status   - Check server daemon status
+   • server:help     - Show this help message
+
+  The server runs on port ` + fmt.Sprintf("%d", e.config.ServerPort) + ` by default.
+  You can change this in the configuration file.
+
+╰───────────────────────────────────────────────────────────╯
+`
+		return &Result{
+			Output:     helpText,
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	default:
+		return &Result{
+			Output:     "Unknown server command: " + parts[0] + "\nUse 'server:help' for available commands.",
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
 }

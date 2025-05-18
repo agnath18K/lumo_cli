@@ -51,6 +51,9 @@ func (e *Executor) executeConfigCommand(cmd *nlp.Command) (*Result, error) {
    • config:mode ai                 Set AI-first mode (default)
    • config:mode command            Set command-first mode
 
+   • config:server show             Show current server settings
+   • config:server quiet on/off     Enable/disable server log messages
+
 ╰──────────────────────────────────────────────────────────╯
 `,
 			IsError:    false,
@@ -70,6 +73,8 @@ func (e *Executor) executeConfigCommand(cmd *nlp.Command) (*Result, error) {
 		return e.handleOllamaConfig(parts[1:], cmd)
 	case "mode":
 		return e.handleModeConfig(parts[1:], cmd)
+	case "server":
+		return e.handleServerConfig(parts[1:], cmd)
 	default:
 		return &Result{
 			Output:     fmt.Sprintf("Unknown configuration command: %s\nUse 'config:' for help.", parts[0]),
@@ -591,6 +596,137 @@ func (e *Executor) handleModeConfig(args []string, cmd *nlp.Command) (*Result, e
 	default:
 		return &Result{
 			Output:     fmt.Sprintf("Unknown mode command: %s. Use 'show', 'ai', or 'command'.", args[0]),
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+}
+
+// handleServerConfig handles server configuration commands
+func (e *Executor) handleServerConfig(args []string, cmd *nlp.Command) (*Result, error) {
+	if len(args) == 0 {
+		return &Result{
+			Output:     "Missing server command. Use 'show', 'enable', 'disable', or 'quiet'.",
+			IsError:    true,
+			CommandRun: cmd.RawInput,
+		}, nil
+	}
+
+	switch args[0] {
+	case "show":
+		// Show current server settings
+		enabledStr := "Disabled"
+		if e.config.EnableServer {
+			enabledStr = "Enabled"
+		}
+
+		quietStr := "Disabled"
+		if e.config.ServerQuietOutput {
+			quietStr = "Enabled"
+		}
+
+		output := fmt.Sprintf(`
+╭─────────────────── 🖥️ Server Settings ───────────────────╮
+
+  • Server Status: %s
+  • Server Port: %d
+  • Quiet Output: %s
+
+  Configure these settings in ~/.config/lumo/config.json
+  or use the commands below.
+
+╰──────────────────────────────────────────────────────────╯
+`, enabledStr, e.config.ServerPort, quietStr)
+		return &Result{
+			Output:     output,
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	case "enable":
+		// Enable the server
+		e.config.EnableServer = true
+
+		// Save the configuration
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		return &Result{
+			Output:     "Server has been enabled. The REST server will now start when Lumo is executed.\n\nNOTE: The server will be accessible on port " + fmt.Sprintf("%d", e.config.ServerPort) + ". Make sure your firewall is configured appropriately.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	case "disable":
+		// Disable the server
+		e.config.EnableServer = false
+
+		// Save the configuration
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		return &Result{
+			Output:     "Server has been disabled. The REST server will not start when Lumo is executed.",
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	case "quiet":
+		// Set quiet mode
+		if len(args) < 2 {
+			return &Result{
+				Output:     "Missing argument. Use 'on' or 'off'.",
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		switch args[1] {
+		case "on":
+			// Enable quiet mode
+			e.config.ServerQuietOutput = true
+		case "off":
+			// Disable quiet mode
+			e.config.ServerQuietOutput = false
+		default:
+			return &Result{
+				Output:     fmt.Sprintf("Invalid argument: %s. Use 'on' or 'off'.", args[1]),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		// Save the configuration
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		quietStr := "disabled"
+		if e.config.ServerQuietOutput {
+			quietStr = "enabled"
+		}
+
+		return &Result{
+			Output:     fmt.Sprintf("Server quiet output %s. Server log messages will %s be displayed.", quietStr, map[bool]string{true: "not", false: ""}[e.config.ServerQuietOutput]),
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+	default:
+		return &Result{
+			Output:     fmt.Sprintf("Unknown server command: %s. Use 'show', 'enable', 'disable', or 'quiet'.", args[0]),
 			IsError:    true,
 			CommandRun: cmd.RawInput,
 		}, nil

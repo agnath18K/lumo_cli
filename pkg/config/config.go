@@ -49,6 +49,11 @@ type Config struct {
 	EnableDesktopAssistant bool   `json:"enable_desktop_assistant"`
 	DefaultDesktopEnv      string `json:"default_desktop_env"`
 
+	// Server settings
+	EnableServer      bool `json:"enable_server"`
+	ServerPort        int  `json:"server_port"`
+	ServerQuietOutput bool `json:"server_quiet_output"`
+
 	// Application settings
 	Debug bool `json:"debug"`
 }
@@ -80,6 +85,9 @@ func DefaultConfig() *Config {
 		SpeedTestTimeout:            30,       // 30 seconds timeout for speed tests
 		EnableDesktopAssistant:      true,     // Desktop assistant enabled by default
 		DefaultDesktopEnv:           "auto",   // Auto-detect desktop environment by default
+		EnableServer:                false,    // REST server disabled by default
+		ServerPort:                  7531,     // Default port for the REST server (uncommon port)
+		ServerQuietOutput:           true,     // Suppress server log messages by default
 		Debug:                       false,
 	}
 }

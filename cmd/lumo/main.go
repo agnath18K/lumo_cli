@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/agnath18K/lumo/pkg/agent"
 	"github.com/agnath18K/lumo/pkg/config"
+	"github.com/agnath18K/lumo/pkg/daemon"
 	"github.com/agnath18K/lumo/pkg/executor"
 	"github.com/agnath18K/lumo/pkg/nlp"
 	"github.com/agnath18K/lumo/pkg/pipe"
+	"github.com/agnath18K/lumo/pkg/server"
 	"github.com/agnath18K/lumo/pkg/terminal"
 	"github.com/agnath18K/lumo/pkg/utils"
 	"github.com/agnath18K/lumo/pkg/version"
@@ -31,6 +36,78 @@ func main() {
 
 	// Initialize agent
 	_ = agent.Initialize(cfg, exec)
+
+	// Check for server daemon commands
+	if len(os.Args) > 1 {
+		// Handle server daemon commands
+		if os.Args[1] == "server:start" {
+			// Start the server daemon
+			d := daemon.New(cfg)
+			if err := d.Start(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error starting server daemon: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("Server daemon started")
+			os.Exit(0)
+		} else if os.Args[1] == "server:stop" {
+			// Stop the server daemon
+			d := daemon.New(cfg)
+			if err := d.Stop(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error stopping server daemon: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("Server daemon stopped")
+			os.Exit(0)
+		} else if os.Args[1] == "server:status" {
+			// Check server daemon status
+			d := daemon.New(cfg)
+			running, pid, err := d.Status()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error checking server daemon status: %v\n", err)
+				os.Exit(1)
+			}
+			if running {
+				fmt.Printf("Server daemon is running with PID %d\n", pid)
+			} else {
+				fmt.Println("Server daemon is not running")
+			}
+			os.Exit(0)
+		} else if os.Args[1] == "server:daemon" {
+			// This is the daemon process
+			d := daemon.New(cfg)
+			if err := d.RunServer(exec); err != nil {
+				fmt.Fprintf(os.Stderr, "Error running server daemon: %v\n", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		}
+	}
+
+	// Check if a server daemon is already running
+	d := daemon.New(cfg)
+	running, _, err := d.IsRunning()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error checking if server daemon is running: %v\n", err)
+	}
+
+	// Start the REST server if enabled and not already running as a daemon
+	var srv *server.Server
+	if cfg.EnableServer && !running {
+		srv = server.New(cfg, exec)
+		if err := srv.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error starting REST server: %v\n", err)
+			// Continue execution even if server fails to start
+		} else {
+			// Set up signal handling for graceful shutdown
+			setupSignalHandling(srv)
+
+			// Notify the user that the server is running
+			if !cfg.ServerQuietOutput {
+				fmt.Fprintf(os.Stderr, "\nNOTE: Lumo REST server is running on port %d\n", cfg.ServerPort)
+				fmt.Fprintf(os.Stderr, "To disable the server, run: lumo config:server disable\n\n")
+			}
+		}
+	}
 
 	// Check if input is being piped
 	stat, _ := os.Stdin.Stat()
@@ -80,7 +157,7 @@ func main() {
 			hasPrefix := false
 			for _, prefix := range []string{"lumo:", "shell:", "ask:", "ai:", "auto:", "agent:",
 				"health:", "syshealth:", "report:", "sysreport:", "chat:", "talk:", "config:",
-				"speed:", "speedtest:", "speed-test:", "magic:", "clipboard", "connect", "create"} {
+				"speed:", "speedtest:", "speed-test:", "magic:", "clipboard", "connect", "create", "server:"} {
 				if strings.HasPrefix(command, prefix) {
 					hasPrefix = true
 					break
@@ -121,149 +198,48 @@ func main() {
 				os.Exit(1)
 			}
 			term.Display(result)
+		} else if strings.HasPrefix(command, "server:") {
+			// Handle server commands
+			intent := strings.TrimSpace(command[7:])
+			if intent == "start" {
+				// Start the server daemon
+				d := daemon.New(cfg)
+				if err := d.Start(); err != nil {
+					fmt.Fprintf(os.Stderr, "Error starting server daemon: %v\n", err)
+					os.Exit(1)
+				}
+				fmt.Println("Server daemon started")
+			} else if intent == "stop" {
+				// Stop the server daemon
+				d := daemon.New(cfg)
+				if err := d.Stop(); err != nil {
+					fmt.Fprintf(os.Stderr, "Error stopping server daemon: %v\n", err)
+					os.Exit(1)
+				}
+				fmt.Println("Server daemon stopped")
+			} else if intent == "status" {
+				// Check server daemon status
+				d := daemon.New(cfg)
+				running, pid, err := d.Status()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error checking server daemon status: %v\n", err)
+					os.Exit(1)
+				}
+				if running {
+					fmt.Printf("Server daemon is running with PID %d\n", pid)
+				} else {
+					fmt.Println("Server daemon is not running")
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "Unknown server command: %s\n", intent)
+				fmt.Println("Available commands: server:start, server:stop, server:status")
+				os.Exit(1)
+			}
 		} else if strings.HasPrefix(command, "lumo:") {
 			// Legacy "lumo:" prefix is now treated as an AI query for safety
 			intent := strings.TrimSpace(command[5:])
 			cmd := &nlp.Command{
 				Type:       nlp.CommandTypeAI,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "health:") || strings.HasPrefix(command, "syshealth:") {
-			// Handle system health commands
-			var intent string
-			if strings.HasPrefix(command, "health:") {
-				intent = strings.TrimSpace(command[7:])
-			} else {
-				intent = strings.TrimSpace(command[10:])
-			}
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeSystemHealth,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "report:") || strings.HasPrefix(command, "sysreport:") {
-			// Handle system report commands
-			var intent string
-			if strings.HasPrefix(command, "report:") {
-				intent = strings.TrimSpace(command[7:])
-			} else {
-				intent = strings.TrimSpace(command[10:])
-			}
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeSystemReport,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "chat:") || strings.HasPrefix(command, "talk:") || command == "chat" || command == "talk" {
-			// Handle chat commands
-			var intent string
-			var rawInput string
-
-			if command == "chat" || command == "talk" {
-				// Empty chat command to start REPL mode
-				intent = ""
-				rawInput = command + ":"
-			} else if strings.HasPrefix(command, "chat:") {
-				intent = strings.TrimSpace(command[5:])
-				rawInput = command
-			} else {
-				intent = strings.TrimSpace(command[5:])
-				rawInput = command
-			}
-
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeChat,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   rawInput,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "config:") {
-			// Handle configuration commands
-			intent := strings.TrimSpace(command[7:])
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeConfig,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "magic:") {
-			// Handle magic commands
-			intent := strings.TrimSpace(command[6:])
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeMagic,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if command == "clipboard" || strings.HasPrefix(command, "clipboard ") {
-			// Handle clipboard commands
-			intent := ""
-			if strings.HasPrefix(command, "clipboard ") {
-				intent = strings.TrimSpace(command[10:])
-			}
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeClipboard,
-				Intent:     intent,
-				Parameters: make(map[string]string),
-				RawInput:   command,
-			}
-			result, err := exec.Execute(cmd)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
-				os.Exit(1)
-			}
-			term.Display(result)
-		} else if strings.HasPrefix(command, "create:") || command == "create" {
-			// Handle create commands
-			var intent string
-			if strings.HasPrefix(command, "create:") {
-				intent = strings.TrimSpace(command[7:])
-			} else {
-				// Just "create" shows help
-				intent = ""
-			}
-			cmd := &nlp.Command{
-				Type:       nlp.CommandTypeCreate,
 				Intent:     intent,
 				Parameters: make(map[string]string),
 				RawInput:   command,
@@ -286,6 +262,27 @@ func main() {
 		}
 		term.Display(result)
 	}
+}
+
+// setupSignalHandling sets up signal handling for graceful shutdown
+func setupSignalHandling(srv *server.Server) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		if !srv.GetConfig().ServerQuietOutput {
+			log.Println("Shutting down REST server...")
+		}
+		if err := srv.Stop(); err != nil {
+			if !srv.GetConfig().ServerQuietOutput {
+				log.Printf("Error stopping server: %v", err)
+			}
+		}
+		if !srv.GetConfig().ServerQuietOutput {
+			log.Println("Server stopped")
+		}
+	}()
 }
 
 func processPipedInput(exec *executor.Executor, term *terminal.Terminal) {

@@ -52,6 +52,8 @@ const (
 	CommandTypeCreate
 	// CommandTypeDesktop represents a desktop environment command
 	CommandTypeDesktop
+	// CommandTypeServer represents a server management command
+	CommandTypeServer
 )
 
 // Parser handles natural language parsing
@@ -222,6 +224,13 @@ func (p *Parser) Parse(input string) (*Command, error) {
 	if strings.HasPrefix(input, "desktop:") {
 		cmd.Type = CommandTypeDesktop
 		cmd.Intent = strings.TrimSpace(input[8:])
+		return cmd, nil
+	}
+
+	// Check for server command prefix
+	if strings.HasPrefix(input, "server:") {
+		cmd.Type = CommandTypeServer
+		cmd.Intent = strings.TrimSpace(input[7:])
 		return cmd, nil
 	}
 

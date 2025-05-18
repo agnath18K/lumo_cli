@@ -455,6 +455,307 @@ lumo connect 192.168.1.5 --path ~/Downloads/transfers
 lumo connect --help
 ```
 
+## REST Server Commands
+
+```bash
+# Start the REST server daemon
+lumo server:start
+
+# Stop the REST server daemon
+lumo server:stop
+
+# Check if the server is running
+lumo server:status
+
+# Show server help
+lumo server:help
+
+# Show current server settings
+lumo config:server show
+
+# Enable the REST server
+lumo config:server enable
+
+# Disable the REST server
+lumo config:server disable
+
+# Control server log messages
+lumo config:server quiet on
+lumo config:server quiet off
+
+# Configure server settings in ~/.config/lumo/config.json:
+# - "enable_server": true/false - Enable or disable the REST server
+# - "server_port": 7531 - Set the port for the REST server
+# - "server_quiet_output": true/false - Control server log messages
+```
+
+### REST API Endpoints
+
+When the server is running, you can interact with Lumo via HTTP:
+
+```bash
+# Check server status
+curl http://localhost:7531/api/v1/status
+
+# Simple ping test to check if server is running
+curl http://localhost:7531/ping
+
+# Execute a command (AI query) - Basic usage
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"How do I find large files in Linux?"}' \
+  http://localhost:7531/api/v1/execute
+
+# Execute a shell command
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"ls -la", "type":"shell"}' \
+  http://localhost:7531/api/v1/execute
+
+# Execute an agent command with parameters
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"create a backup", "type":"agent", "params":{"path":"/home/user/docs"}}' \
+  http://localhost:7531/api/v1/execute
+
+# Get system health information
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"check system health", "type":"system_health"}' \
+  http://localhost:7531/api/v1/execute
+
+# Generate a system report
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"generate report", "type":"system_report"}' \
+  http://localhost:7531/api/v1/execute
+
+# Run a speed test
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"test download speed", "type":"speed_test"}' \
+  http://localhost:7531/api/v1/execute
+
+# Get help information
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"help", "type":"help"}' \
+  http://localhost:7531/api/v1/execute
+
+# Modify configuration
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"command":"provider show", "type":"config"}' \
+  http://localhost:7531/api/v1/execute
+```
+
+### Using the REST API with Python
+
+Here's an example of how to use the Lumo REST API with Python:
+
+```python
+import requests
+import json
+
+# Base URL for the Lumo REST API
+base_url = "http://localhost:7531"
+
+# Check server status
+response = requests.get(f"{base_url}/api/v1/status")
+print("Server Status:", response.json())
+
+# Execute an AI query
+payload = {
+    "command": "What is the capital of France?"
+}
+response = requests.post(
+    f"{base_url}/api/v1/execute",
+    headers={"Content-Type": "application/json"},
+    data=json.dumps(payload)
+)
+print("AI Response:", response.json()["output"])
+
+# Execute a shell command
+payload = {
+    "command": "df -h",
+    "type": "shell"
+}
+response = requests.post(
+    f"{base_url}/api/v1/execute",
+    headers={"Content-Type": "application/json"},
+    data=json.dumps(payload)
+)
+print("Shell Command Output:", response.json()["output"])
+```
+
+### Using the REST API with JavaScript/Node.js
+
+Here's an example of how to use the Lumo REST API with JavaScript:
+
+```javascript
+const fetch = require('node-fetch');
+
+// Base URL for the Lumo REST API
+const baseUrl = 'http://localhost:7531';
+
+// Check server status
+fetch(`${baseUrl}/api/v1/status`)
+  .then(response => response.json())
+  .then(data => console.log('Server Status:', data))
+  .catch(error => console.error('Error:', error));
+
+// Execute an AI query
+const aiQuery = {
+  command: 'What is the capital of France?'
+};
+
+fetch(`${baseUrl}/api/v1/execute`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(aiQuery)
+})
+  .then(response => response.json())
+  .then(data => console.log('AI Response:', data.output))
+  .catch(error => console.error('Error:', error));
+
+// Execute a shell command
+const shellCommand = {
+  command: 'df -h',
+  type: 'shell'
+};
+
+fetch(`${baseUrl}/api/v1/execute`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(shellCommand)
+})
+  .then(response => response.json())
+  .then(data => console.log('Shell Command Output:', data.output))
+  .catch(error => console.error('Error:', error));
+```
+
+### Using the REST API with HTML/JavaScript (Web Interface)
+
+Here's a simple HTML page that provides a web interface for Lumo:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Web Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        input, select, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lumo Web Interface</h1>
+    <div class="container">
+        <div class="input-row">
+            <input type="text" id="command" placeholder="Enter your command" style="flex-grow: 1;">
+            <select id="commandType">
+                <option value="">AI (default)</option>
+                <option value="shell">Shell</option>
+                <option value="agent">Agent</option>
+                <option value="system_health">System Health</option>
+                <option value="system_report">System Report</option>
+                <option value="help">Help</option>
+                <option value="config">Config</option>
+            </select>
+            <button onclick="executeCommand()">Execute</button>
+        </div>
+        <h3>Response:</h3>
+        <pre id="response">Results will appear here...</pre>
+    </div>
+
+    <script>
+        async function executeCommand() {
+            const command = document.getElementById('command').value;
+            const commandType = document.getElementById('commandType').value;
+            const responseElement = document.getElementById('response');
+
+            if (!command) {
+                responseElement.textContent = "Please enter a command";
+                return;
+            }
+
+            responseElement.textContent = "Processing...";
+
+            try {
+                const payload = {
+                    command: command
+                };
+
+                if (commandType) {
+                    payload.type = commandType;
+                }
+
+                const response = await fetch('http://localhost:7531/api/v1/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    responseElement.textContent = data.output;
+                } else {
+                    responseElement.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                responseElement.textContent = `Error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+```
+
+Save this HTML file and open it in a browser while the Lumo server is running to interact with Lumo through a web interface.
+
 ## Command-Line Options
 
 ```bash
