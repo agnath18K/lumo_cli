@@ -50,6 +50,8 @@ const (
 	CommandTypeConnect
 	// CommandTypeCreate represents a project creation command
 	CommandTypeCreate
+	// CommandTypeDesktop represents a desktop environment command
+	CommandTypeDesktop
 )
 
 // Parser handles natural language parsing
@@ -82,8 +84,8 @@ func (p *Parser) Parse(input string) (*Command, error) {
 		return cmd, nil
 	}
 
-	// Check for shell command prefix
-	if strings.HasPrefix(input, "lumo:") || strings.HasPrefix(input, "shell:") {
+	// Check for shell command prefix - ONLY execute shell commands with explicit prefix
+	if strings.HasPrefix(input, "shell:") {
 		// Check if we're in interactive mode and shell commands are disabled
 		args := os.Args
 		isInteractiveMode := len(args) <= 1 || input != strings.Join(args[1:], " ")
@@ -97,11 +99,14 @@ func (p *Parser) Parse(input string) (*Command, error) {
 
 		// Process as shell command
 		cmd.Type = CommandTypeShell
-		if strings.HasPrefix(input, "lumo:") {
-			cmd.Intent = strings.TrimSpace(input[5:])
-		} else {
-			cmd.Intent = strings.TrimSpace(input[6:])
-		}
+		cmd.Intent = strings.TrimSpace(input[6:])
+		return cmd, nil
+	}
+
+	// Legacy "lumo:" prefix is now treated as an AI query for safety
+	if strings.HasPrefix(input, "lumo:") {
+		cmd.Type = CommandTypeAI
+		cmd.Intent = strings.TrimSpace(input[5:])
 		return cmd, nil
 	}
 
@@ -213,39 +218,23 @@ func (p *Parser) Parse(input string) (*Command, error) {
 		return cmd, nil
 	}
 
+	// Check for desktop command prefix
+	if strings.HasPrefix(input, "desktop:") {
+		cmd.Type = CommandTypeDesktop
+		cmd.Intent = strings.TrimSpace(input[8:])
+		return cmd, nil
+	}
+
 	// Check if this is a command-line argument (first argument is the program name)
 	args := os.Args
 	if len(args) > 1 && input == strings.Join(args[1:], " ") {
-		// Split the input into words
-		words := strings.Fields(input)
+		// We no longer automatically execute commands based on command-line arguments
+		// Shell commands should only be executed when explicitly prefixed with "shell:"
 
-		// Check if it's a single word that exists as an executable in PATH
-		if len(words) == 1 {
-			_, err := exec.LookPath(words[0])
-			if err == nil && p.config.CommandFirstMode {
-				// It's a single word that exists as a command and we're in command-first mode
-				cmd.Type = CommandTypeShell
-				cmd.Intent = input
-				return cmd, nil
-			}
-		}
-
-		// If we're in command-first mode, check if it looks like a natural language query
-		if p.config.CommandFirstMode {
-			// If it looks like a natural language query, treat it as an AI query
-			if IsNaturalLanguageQuery(input) {
-				cmd.Type = CommandTypeAI
-				cmd.Intent = input
-				return cmd, nil
-			}
-
-			// Otherwise, treat it as a shell command in command-first mode
-			cmd.Type = CommandTypeShell
-			cmd.Intent = input
-			return cmd, nil
-		}
-
-		// In AI-first mode (default), we treat everything as AI query unless it's a specific exception
+		// Default to AI query for natural language processing
+		cmd.Type = CommandTypeAI
+		cmd.Intent = input
+		return cmd, nil
 	}
 
 	// Check if this looks like a speed test query

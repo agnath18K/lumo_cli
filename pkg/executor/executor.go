@@ -73,6 +73,11 @@ func (e *Executor) SetAgent(agent AgentInterface) {
 	e.agent = agent
 }
 
+// GetAIClient returns the AI client
+func (e *Executor) GetAIClient() ai.Client {
+	return e.aiClient
+}
+
 // Execute processes a command and returns the result
 func (e *Executor) Execute(cmd *nlp.Command) (*Result, error) {
 	return e.ExecuteWithReader(cmd, nil)
@@ -243,6 +248,9 @@ func (e *Executor) ExecuteWithReader(cmd *nlp.Command, reader io.Reader) (*Resul
 	case nlp.CommandTypeCreate:
 		// Execute create command
 		return e.executeCreateCommand(cmd)
+	case nlp.CommandTypeDesktop:
+		// Execute desktop command
+		return e.executeDesktopCommand(cmd)
 	default:
 		return &Result{
 			Output:     "Unknown command type",
@@ -602,8 +610,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • ask:<query>                Ask the AI a question
    • chat:<message>             Start or continue a conversation
    • chat                       Start interactive chat mode
-   • lumo:<command>             Run shell command [%s]
-   • shell:<command>            Run shell command [%s]
+   • shell:<command>            Run shell command [%s] (ONLY with shell: prefix)
    • auto:<task>                Use agent mode [%s]
    • agent:<task>               Use agent mode [%s]
    • health:<options>           Check system health [%s]
@@ -620,6 +627,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • connect <peer-ip> [options]  Connect to peer to send/receive files
    • connect --help              Show connect command options
    • create:<query>             Create a new project from description
+   • desktop:<command>          Execute desktop environment commands
    • config:<options>           Configure Lumo settings
    • version, -v, --version     Show version information
    • help, -h, --help           Show this help
@@ -628,7 +636,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • lumo "how to find large files"
    • chat:Tell me about Linux
    • chat                       Start interactive chat session
-   • lumo:ls -la
+   • shell:ls -la               Execute shell command (ONLY with shell: prefix)
    • auto:"create a backup of my documents"
    • magic:dance                Show a fun dance animation
    • clipboard                  Show current clipboard contents
@@ -641,6 +649,8 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • connect --receive --port 9000  Start a server on port 9000
    • connect 192.168.1.5        Connect to peer at 192.168.1.5:8080
    • create:"Flutter app with bloc architecture"  Create a new Flutter project
+   • desktop:"close firefox window"  Close the Firefox window
+   • desktop:"launch terminal"  Launch the terminal application
    • speed:                     Run a full internet speed test
    • speed:download             Test download speed only
    • cat file.txt | lumo        Analyze piped content
@@ -683,7 +693,7 @@ func (e *Executor) showHelp(cmd *nlp.Command) (*Result, error) {
    • Offline mode available with Ollama (config:provider set ollama)
 
 ╰─────────────────────────────────────────────────────────────────────╯
-`, shellStatus, shellStatus, agentStatus, agentStatus, healthStatus, healthStatus, reportStatus, reportStatus, speedTestStatus, shellStatus, agentStatus, replStatus, chatReplStatus, pipeStatus, healthStatus, reportStatus, speedTestStatus, e.config.AIProvider, getCurrentModel(e.config))
+`, shellStatus, agentStatus, agentStatus, healthStatus, healthStatus, reportStatus, reportStatus, speedTestStatus, shellStatus, agentStatus, replStatus, chatReplStatus, pipeStatus, healthStatus, reportStatus, speedTestStatus, e.config.AIProvider, getCurrentModel(e.config))
 
 	return &Result{
 		Output:     helpText,
@@ -697,10 +707,7 @@ func (e *Executor) GetConfig() *config.Config {
 	return e.config
 }
 
-// GetAIClient returns the executor's AI client
-func (e *Executor) GetAIClient() ai.Client {
-	return e.aiClient
-}
+// This method was duplicated and has been removed
 
 // ShowWelcome displays a minimal welcome message
 func (e *Executor) ShowWelcome() (*Result, error) {
@@ -714,6 +721,7 @@ func (e *Executor) ShowWelcome() (*Result, error) {
    • lumo chat:Tell me about Linux
    • lumo auto:"create a backup of my documents"
    • lumo create:"Flutter app with bloc architecture"
+   • lumo desktop:"close firefox window"
    • lumo connect --receive
 
   Type 'help' for full documentation and available commands.

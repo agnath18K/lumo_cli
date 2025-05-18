@@ -31,6 +31,7 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 - **Natural Language Command Processing**: Translate plain English into terminal commands
 - **Agent Mode**: Autonomous planning and execution of command sequences
 - **Chat Mode**: Conversational assistance for terminal and general queries
+- **Desktop Assistant**: Control your desktop environment with natural language
 - **System Monitoring**: Track system health and performance
 - **Pipe Support**: Analyze and explain command outputs
 - **Multiple AI Providers**: Support for Google Gemini, OpenAI, and Ollama
@@ -73,6 +74,10 @@ lumo health
 
 # Internet speed test
 lumo speed
+
+# Desktop assistant
+lumo desktop:"close firefox window"
+lumo desktop:"launch terminal"
 ```
 
 **For complete usage documentation and examples, visit [getlumo.dev/documentation](https://getlumo.dev/documentation)**

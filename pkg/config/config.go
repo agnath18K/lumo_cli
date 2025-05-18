@@ -45,6 +45,10 @@ type Config struct {
 	EnableSpeedTest  bool `json:"enable_speed_test"`
 	SpeedTestTimeout int  `json:"speed_test_timeout"`
 
+	// Desktop assistant settings
+	EnableDesktopAssistant bool   `json:"enable_desktop_assistant"`
+	DefaultDesktopEnv      string `json:"default_desktop_env"`
+
 	// Application settings
 	Debug bool `json:"debug"`
 }
@@ -74,6 +78,8 @@ func DefaultConfig() *Config {
 		EnableSystemReport:          true,     // System reports enabled by default
 		EnableSpeedTest:             true,     // Speed test feature enabled by default
 		SpeedTestTimeout:            30,       // 30 seconds timeout for speed tests
+		EnableDesktopAssistant:      true,     // Desktop assistant enabled by default
+		DefaultDesktopEnv:           "auto",   // Auto-detect desktop environment by default
 		Debug:                       false,
 	}
 }

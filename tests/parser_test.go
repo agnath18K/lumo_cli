@@ -24,9 +24,11 @@ func TestParserCommandTypeDetection(t *testing.T) {
 		expectedType nlp.CommandType
 		description  string
 	}{
-		// Shell commands
-		{"lumo:ls -la", nlp.CommandTypeShell, "Shell command with lumo: prefix"},
+		// Shell commands (ONLY with shell: prefix)
 		{"shell:echo hello", nlp.CommandTypeShell, "Shell command with shell: prefix"},
+
+		// Legacy lumo: prefix is now treated as an AI query
+		{"lumo:ls -la", nlp.CommandTypeAI, "Legacy lumo: prefix is treated as AI query"},
 
 		// AI queries
 		{"how do I find large files?", nlp.CommandTypeAI, "Natural language query"},
@@ -112,7 +114,7 @@ func TestParserPrefixHandling(t *testing.T) {
 		expectedIntent string
 		description    string
 	}{
-		{"lumo:ls -la", "ls -la", "Shell command with lumo: prefix"},
+		{"lumo:ls -la", "ls -la", "Legacy lumo: prefix is treated as AI query"},
 		{"shell:echo hello", "echo hello", "Shell command with shell: prefix"},
 		{"health:cpu", "cpu", "System health command with health: prefix"},
 		{"syshealth:memory", "memory", "System health command with syshealth: prefix"},

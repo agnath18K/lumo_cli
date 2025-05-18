@@ -68,6 +68,14 @@ func TestConfigDefaultValues(t *testing.T) {
 		t.Errorf("Expected default EnableChatREPL to be true, got false")
 	}
 
+	if !cfg.EnableDesktopAssistant {
+		t.Errorf("Expected default EnableDesktopAssistant to be true, got false")
+	}
+
+	if cfg.DefaultDesktopEnv != "auto" {
+		t.Errorf("Expected default DefaultDesktopEnv to be 'auto', got '%s'", cfg.DefaultDesktopEnv)
+	}
+
 	if cfg.Debug {
 		t.Errorf("Expected default Debug to be false, got true")
 	}

@@ -56,12 +56,13 @@ Start or continue a conversation with the specified message.
 Ask a specific question without entering chat mode.
 
 .SS Shell Commands
-Execute shell commands directly:
-.TP
-.B lumo lumo:\fICOMMAND\fR
+Execute shell commands directly (MUST use shell: prefix):
 .TP
 .B lumo shell:\fICOMMAND\fR
 Execute the specified shell command.
+
+Note: Shell commands are ONLY executed when explicitly prefixed with "shell:".
+Commands without this prefix will be processed as AI queries.
 
 .SS System Health
 Check system health and generate reports:
@@ -118,6 +119,15 @@ Show help for the create command.
 .TP
 .B lumo create:"\fIDESCRIPTION\fR"
 Create a new project based on the description.
+
+.SS Desktop Assistant
+Control your desktop environment with natural language commands:
+.TP
+.B lumo desktop:"\fICOMMAND\fR"
+Execute a desktop command. Examples include "close firefox window", "launch terminal", "lock screen", etc.
+
+The desktop assistant uses AI to understand complex commands and execute them. You can use natural language to describe what you want to do, and the assistant will try to understand and execute the appropriate commands.
+
 
 .SS Magic Commands
 Run fun magic commands:
@@ -293,11 +303,15 @@ lumo ask:What is the capital of France?
 .SS Shell Commands
 .PP
 .nf
-# Execute a shell command directly
-lumo lumo:ls -la
+# Execute a shell command (MUST use shell: prefix)
+lumo shell:ls -la
 
 # Execute another shell command
 lumo shell:find . -name "*.go" -type f
+
+# Note: Shell commands are ONLY executed when explicitly prefixed with "shell:"
+# The following will NOT execute as a shell command, but will be processed as an AI query:
+lumo ls -la
 .fi
 
 .SS System Health
@@ -352,6 +366,31 @@ lumo create:"Next.js app with Redux state management"
 # Create a FastAPI project
 lumo create:"FastAPI project with SQLAlchemy"
 .fi
+
+.SS Desktop Assistant
+.PP
+.nf
+# Close a specific window
+lumo desktop:"close firefox window"
+
+# Minimize a window
+lumo desktop:"minimize terminal window"
+
+# Launch an application
+lumo desktop:"launch terminal"
+
+# Lock the screen
+lumo desktop:"lock screen"
+
+# Control media playback
+lumo desktop:"play media"
+lumo desktop:"next track"
+
+# AI-powered natural language commands
+lumo desktop:"I want to close all Firefox windows and then open a new terminal"
+lumo desktop:"Could you please minimize all my windows and then lock my screen?"
+.fi
+
 
 .SS File Transfer with Connect
 .PP

@@ -129,11 +129,15 @@ exit
 ### Shell Commands
 
 ```bash
-# Execute a shell command directly
-lumo lumo:ls -la
+# Execute a shell command (MUST use shell: prefix)
+lumo shell:ls -la
 
 # Execute another shell command
 lumo shell:find . -name "*.go" -type f
+
+# Note: Shell commands are ONLY executed when explicitly prefixed with "shell:"
+# The following will NOT execute as a shell command, but will be processed as an AI query:
+lumo ls -la
 ```
 
 ### System Health
@@ -262,6 +266,50 @@ lumo create:"Create a Flask app with SQLAlchemy and authentication"
 # Show help for the create command
 lumo create
 ```
+
+## Desktop Assistant
+
+The desktop assistant allows you to control your desktop environment using natural language commands. It uses AI to understand complex commands and execute them.
+
+```bash
+# Close a specific window
+lumo desktop:"close firefox window"
+
+# Minimize a window
+lumo desktop:"minimize terminal window"
+
+# Maximize a window
+lumo desktop:"maximize chrome window"
+
+# List all open windows
+lumo desktop:"list windows"
+
+# Launch an application
+lumo desktop:"launch terminal"
+
+# List running applications
+lumo desktop:"list applications"
+
+# Lock the screen
+lumo desktop:"lock screen"
+
+# Send a notification
+lumo desktop:"send notification Hello World with body This is a test"
+
+# Control media playback
+lumo desktop:"play media"
+lumo desktop:"pause media"
+lumo desktop:"stop media"
+lumo desktop:"next track"
+lumo desktop:"previous track"
+
+# AI-powered natural language commands
+lumo desktop:"I want to close all Firefox windows and then open a new terminal"
+lumo desktop:"Could you please minimize all my windows and then lock my screen?"
+lumo desktop:"First open Firefox, then maximize it, and finally play some music"
+```
+
+
 
 ## Magic Commands
 

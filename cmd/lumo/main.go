@@ -106,16 +106,26 @@ func main() {
 		}
 
 		// Special handling for commands with specific prefixes
-		if strings.HasPrefix(command, "lumo:") || strings.HasPrefix(command, "shell:") {
-			// Handle shell commands
-			var intent string
-			if strings.HasPrefix(command, "lumo:") {
-				intent = strings.TrimSpace(command[5:])
-			} else {
-				intent = strings.TrimSpace(command[6:])
-			}
+		if strings.HasPrefix(command, "shell:") {
+			// Handle shell commands (ONLY with shell: prefix)
+			intent := strings.TrimSpace(command[6:])
 			cmd := &nlp.Command{
 				Type:       nlp.CommandTypeShell,
+				Intent:     intent,
+				Parameters: make(map[string]string),
+				RawInput:   command,
+			}
+			result, err := exec.Execute(cmd)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error executing command: %v\n", err)
+				os.Exit(1)
+			}
+			term.Display(result)
+		} else if strings.HasPrefix(command, "lumo:") {
+			// Legacy "lumo:" prefix is now treated as an AI query for safety
+			intent := strings.TrimSpace(command[5:])
+			cmd := &nlp.Command{
+				Type:       nlp.CommandTypeAI,
 				Intent:     intent,
 				Parameters: make(map[string]string),
 				RawInput:   command,
