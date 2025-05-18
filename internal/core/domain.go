@@ -14,6 +14,10 @@ const (
 	CommandTypeNotification CommandType = "notification"
 	// CommandTypeMedia represents media control commands
 	CommandTypeMedia CommandType = "media"
+	// CommandTypeAppearance represents appearance management commands
+	CommandTypeAppearance CommandType = "appearance"
+	// CommandTypeSound represents sound settings commands
+	CommandTypeSound CommandType = "sound"
 )
 
 // Command represents a desktop command to be executed
@@ -58,6 +62,10 @@ const (
 	CapabilityScreenshot Capability = "screenshot"
 	// CapabilityClipboard represents clipboard management capabilities
 	CapabilityClipboard Capability = "clipboard"
+	// CapabilityAppearanceManagement represents appearance management capabilities
+	CapabilityAppearanceManagement Capability = "appearance_management"
+	// CapabilitySoundManagement represents sound settings management capabilities
+	CapabilitySoundManagement Capability = "sound_management"
 )
 
 // Window represents a desktop window
@@ -120,4 +128,22 @@ type Notification struct {
 	Hints map[string]interface{}
 	// Timeout is the notification timeout in milliseconds
 	Timeout int32
+}
+
+// SoundDevice represents a sound device (input or output)
+type SoundDevice struct {
+	// ID is the unique identifier for the sound device
+	ID string
+	// Name is the human-readable name of the device
+	Name string
+	// Description is a description of the device
+	Description string
+	// IsInput indicates whether this is an input device (microphone)
+	IsInput bool
+	// IsDefault indicates whether this is the default device
+	IsDefault bool
+	// Volume is the current volume level (0-100)
+	Volume int
+	// Muted indicates whether the device is muted
+	Muted bool
 }

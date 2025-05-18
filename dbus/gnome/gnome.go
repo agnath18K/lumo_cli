@@ -49,6 +49,8 @@ func NewEnvironment() (*Environment, error) {
 		core.CapabilityMediaControl,
 		core.CapabilityScreenshot,
 		core.CapabilityClipboard,
+		core.CapabilityAppearanceManagement,
+		core.CapabilitySoundManagement,
 	}
 
 	// Create base environment
@@ -103,6 +105,10 @@ func (e *Environment) ExecuteCommand(ctx context.Context, cmd *core.Command) (*c
 		return e.executeNotificationCommand(ctx, cmd)
 	case core.CommandTypeMedia:
 		return e.executeMediaCommand(ctx, cmd)
+	case core.CommandTypeAppearance:
+		return e.executeAppearanceCommand(ctx, cmd)
+	case core.CommandTypeSound:
+		return e.executeSoundCommand(ctx, cmd)
 	default:
 		return nil, fmt.Errorf("unsupported command type: %s", cmd.Type)
 	}

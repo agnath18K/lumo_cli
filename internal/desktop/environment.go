@@ -149,3 +149,105 @@ func (e *BaseEnvironment) SetClipboardText(ctx context.Context, text string) err
 	// This should be overridden by specific implementations
 	return fmt.Errorf("not implemented")
 }
+
+// SetGtkTheme sets the GTK theme (light/dark mode)
+func (e *BaseEnvironment) SetGtkTheme(ctx context.Context, theme string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// SetDesktopBackground sets the desktop background image
+func (e *BaseEnvironment) SetDesktopBackground(ctx context.Context, imagePath string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// SetAccentColor sets the accent color if supported
+func (e *BaseEnvironment) SetAccentColor(ctx context.Context, color string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// SetIconTheme sets the icon theme
+func (e *BaseEnvironment) SetIconTheme(ctx context.Context, theme string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetCurrentTheme gets the current GTK theme
+func (e *BaseEnvironment) GetCurrentTheme(ctx context.Context) (string, error) {
+	// This should be overridden by specific implementations
+	return "", fmt.Errorf("not implemented")
+}
+
+// GetCurrentBackground gets the current desktop background
+func (e *BaseEnvironment) GetCurrentBackground(ctx context.Context) (string, error) {
+	// This should be overridden by specific implementations
+	return "", fmt.Errorf("not implemented")
+}
+
+// GetCurrentIconTheme gets the current icon theme
+func (e *BaseEnvironment) GetCurrentIconTheme(ctx context.Context) (string, error) {
+	// This should be overridden by specific implementations
+	return "", fmt.Errorf("not implemented")
+}
+
+// SetVolume sets the system volume level (0-100)
+func (e *BaseEnvironment) SetVolume(ctx context.Context, level int) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetVolume gets the current system volume level (0-100)
+func (e *BaseEnvironment) GetVolume(ctx context.Context) (int, error) {
+	// This should be overridden by specific implementations
+	return 0, fmt.Errorf("not implemented")
+}
+
+// SetMute sets the system mute state
+func (e *BaseEnvironment) SetMute(ctx context.Context, mute bool) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetMute gets the current system mute state
+func (e *BaseEnvironment) GetMute(ctx context.Context) (bool, error) {
+	// This should be overridden by specific implementations
+	return false, fmt.Errorf("not implemented")
+}
+
+// SetInputVolume sets the microphone volume level (0-100)
+func (e *BaseEnvironment) SetInputVolume(ctx context.Context, level int) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetInputVolume gets the current microphone volume level (0-100)
+func (e *BaseEnvironment) GetInputVolume(ctx context.Context) (int, error) {
+	// This should be overridden by specific implementations
+	return 0, fmt.Errorf("not implemented")
+}
+
+// SetInputMute sets the microphone mute state
+func (e *BaseEnvironment) SetInputMute(ctx context.Context, mute bool) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetInputMute gets the current microphone mute state
+func (e *BaseEnvironment) GetInputMute(ctx context.Context) (bool, error) {
+	// This should be overridden by specific implementations
+	return false, fmt.Errorf("not implemented")
+}
+
+// GetSoundDevices gets a list of available sound devices
+func (e *BaseEnvironment) GetSoundDevices(ctx context.Context) ([]core.SoundDevice, error) {
+	// This should be overridden by specific implementations
+	return nil, fmt.Errorf("not implemented")
+}
+
+// SetDefaultSoundDevice sets the default sound device
+func (e *BaseEnvironment) SetDefaultSoundDevice(ctx context.Context, deviceID string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}

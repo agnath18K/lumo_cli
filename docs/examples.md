@@ -303,10 +303,32 @@ lumo desktop:"stop media"
 lumo desktop:"next track"
 lumo desktop:"previous track"
 
+# Change appearance settings (GNOME)
+lumo desktop:"set dark mode on"
+lumo desktop:"set light mode"
+lumo desktop:"change desktop background to /path/to/image.jpg"
+lumo desktop:"set GTK theme to Adwaita-dark"
+lumo desktop:"change icon theme to Papirus"
+lumo desktop:"get current theme"
+lumo desktop:"show desktop background"
+
+# Control sound settings (GNOME)
+lumo desktop:"set volume to 50 percent"
+lumo desktop:"increase volume to 75 percent"
+lumo desktop:"mute the sound"
+lumo desktop:"unmute the sound"
+lumo desktop:"set microphone volume to 80 percent"
+lumo desktop:"mute the microphone"
+lumo desktop:"show all sound devices"
+lumo desktop:"get current volume level"
+lumo desktop:"set default sound device to alsa_output.pci-0000_00_1f.3.analog-stereo"
+
 # AI-powered natural language commands
 lumo desktop:"I want to close all Firefox windows and then open a new terminal"
 lumo desktop:"Could you please minimize all my windows and then lock my screen?"
 lumo desktop:"First open Firefox, then maximize it, and finally play some music"
+lumo desktop:"Switch to dark mode and set my background to night-sky.jpg"
+lumo desktop:"Increase the volume to 80 percent and then play some music"
 ```
 
 

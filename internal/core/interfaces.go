@@ -66,6 +66,57 @@ type DesktopEnvironment interface {
 
 	// SetClipboardText sets the text in the clipboard
 	SetClipboardText(ctx context.Context, text string) error
+
+	// SetGtkTheme sets the GTK theme (light/dark mode)
+	SetGtkTheme(ctx context.Context, theme string) error
+
+	// SetDesktopBackground sets the desktop background image
+	SetDesktopBackground(ctx context.Context, imagePath string) error
+
+	// SetAccentColor sets the accent color if supported
+	SetAccentColor(ctx context.Context, color string) error
+
+	// SetIconTheme sets the icon theme
+	SetIconTheme(ctx context.Context, theme string) error
+
+	// GetCurrentTheme gets the current GTK theme
+	GetCurrentTheme(ctx context.Context) (string, error)
+
+	// GetCurrentBackground gets the current desktop background
+	GetCurrentBackground(ctx context.Context) (string, error)
+
+	// GetCurrentIconTheme gets the current icon theme
+	GetCurrentIconTheme(ctx context.Context) (string, error)
+
+	// SetVolume sets the system volume level (0-100)
+	SetVolume(ctx context.Context, level int) error
+
+	// GetVolume gets the current system volume level (0-100)
+	GetVolume(ctx context.Context) (int, error)
+
+	// SetMute sets the system mute state
+	SetMute(ctx context.Context, mute bool) error
+
+	// GetMute gets the current system mute state
+	GetMute(ctx context.Context) (bool, error)
+
+	// SetInputVolume sets the microphone volume level (0-100)
+	SetInputVolume(ctx context.Context, level int) error
+
+	// GetInputVolume gets the current microphone volume level (0-100)
+	GetInputVolume(ctx context.Context) (int, error)
+
+	// SetInputMute sets the microphone mute state
+	SetInputMute(ctx context.Context, mute bool) error
+
+	// GetInputMute gets the current microphone mute state
+	GetInputMute(ctx context.Context) (bool, error)
+
+	// GetSoundDevices gets a list of available sound devices
+	GetSoundDevices(ctx context.Context) ([]SoundDevice, error)
+
+	// SetDefaultSoundDevice sets the default sound device
+	SetDefaultSoundDevice(ctx context.Context, deviceID string) error
 }
 
 // DesktopFactory creates desktop environment instances

@@ -43,6 +43,8 @@ Valid command types:
 - system (for system operations)
 - notification (for notification operations)
 - media (for media operations)
+- appearance (for appearance settings)
+- sound (for sound settings)
 
 Valid actions for window:
 - close (close a window)
@@ -73,6 +75,28 @@ Valid actions for media:
 - next (next track)
 - previous (previous track)
 
+Valid actions for appearance:
+- set-theme (set GTK theme)
+- set-dark-mode (enable/disable dark mode)
+- set-background (set desktop background)
+- set-accent-color (set accent color)
+- set-icon-theme (set icon theme)
+- get-theme (get current GTK theme)
+- get-background (get current desktop background)
+- get-icon-theme (get current icon theme)
+
+Valid actions for sound:
+- set-volume (set system volume level)
+- get-volume (get current system volume level)
+- set-mute (set system mute state)
+- get-mute (get current system mute state)
+- set-input-volume (set microphone volume level)
+- get-input-volume (get current microphone volume level)
+- set-input-mute (set microphone mute state)
+- get-input-mute (get current microphone mute state)
+- list-devices (list available sound devices)
+- set-default-device (set default sound device)
+
 Examples:
 - "Close Firefox window" -> "window:close:firefox"
 - "Launch Terminal" -> "application:launch:gnome-terminal"
@@ -80,6 +104,15 @@ Examples:
 - "Send notification Hello World with body This is a test" -> "notification:send:Hello World:body=This is a test"
 - "Play media" -> "media:play:"
 - "Launch Firefox and maximize it" -> "application:launch:firefox"
+- "Set dark mode on" -> "appearance:set-dark-mode:on"
+- "Change desktop background to /path/to/image.jpg" -> "appearance:set-background:/path/to/image.jpg"
+- "Get current theme" -> "appearance:get-theme:"
+- "Set GTK theme to Adwaita-dark" -> "appearance:set-theme:Adwaita-dark"
+- "Set volume to 50 percent" -> "sound:set-volume:50"
+- "Mute the sound" -> "sound:set-mute:true"
+- "Unmute the microphone" -> "sound:set-input-mute:false"
+- "Show sound devices" -> "sound:list-devices:"
+- "Set microphone volume to 75 percent" -> "sound:set-input-volume:75"
 
 Only output the structured format, nothing else. Do not include newlines or multiple commands.
 `, input)
