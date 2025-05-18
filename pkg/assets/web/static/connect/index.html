@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Connect - File Transfer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/connect.css">
+    <!-- Add redirect script to handle authentication -->
+    <script>
+        // Check if user is authenticated before page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get auth token from localStorage
+            const token = localStorage.getItem('lumo_token');
+            const expiry = localStorage.getItem('lumo_token_expiry');
+
+            // If no token or expired, redirect to main page for login
+            if (!token || !expiry || new Date(parseInt(expiry)) <= new Date()) {
+                // Store the current URL to redirect back after login
+                localStorage.setItem('lumo_redirect_after_login', window.location.href);
+                // Redirect to main page
+                window.location.href = '../';
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app">
+
+        <!-- Main Connect Page -->
+        <div id="connect-page" class="hidden">
+            <nav class="bg-indigo-600 shadow-md">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex">
+                            <div class="flex-shrink-0 flex items-center">
+                                <h1 class="text-white text-xl font-bold">Lumo Connect</h1>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <a href="../" class="text-white px-3 py-2 mr-4">Main Dashboard</a>
+                            <div class="ml-3 relative">
+                                <div>
+                                    <button id="user-menu-button" class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white">
+                                        <span class="sr-only">Open user menu</span>
+                                        <span id="username-display" class="text-white px-3 py-2"></span>
+                                    </button>
+                                </div>
+                                <div id="user-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    <a href="#" id="change-password-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
+                                    <a href="#" id="logout-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">File Transfer</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Server Mode -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-md font-medium text-gray-900 mb-2">Receive Files</h3>
+                            <p class="text-sm text-gray-600 mb-4">Start a server to receive files from other devices.</p>
+                            <div class="flex flex-col space-y-4">
+                                <div>
+                                    <label for="server-port" class="block text-sm font-medium text-gray-700">Port</label>
+                                    <input type="number" id="server-port" value="8080" min="1024" max="65535" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="server-path" class="block text-sm font-medium text-gray-700">Download Path</label>
+                                    <input type="text" id="server-path" placeholder="Default: ~/Downloads" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <button id="start-server-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Start Server
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Client Mode -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h3 class="text-md font-medium text-gray-900 mb-2">Send Files</h3>
+                            <p class="text-sm text-gray-600 mb-4">Connect to another device to send files.</p>
+                            <div class="flex flex-col space-y-4">
+                                <div>
+                                    <label for="client-ip" class="block text-sm font-medium text-gray-700">IP Address</label>
+                                    <input type="text" id="client-ip" placeholder="e.g. 192.168.1.5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="client-port" class="block text-sm font-medium text-gray-700">Port</label>
+                                    <input type="number" id="client-port" value="8080" min="1024" max="65535" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <button id="discover-button" class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Discover Devices
+                                </button>
+                                <button id="connect-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Connect
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Discovered Devices -->
+                <div id="discovered-devices-container" class="hidden bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Discovered Devices</h2>
+                    <div id="discovered-devices" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Devices will be added here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Active Connection -->
+                <div id="active-connection-container" class="hidden bg-white shadow-md rounded-lg p-6 mb-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Active Connection</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-md font-medium text-gray-900 mb-2">Connection Info</h3>
+                            <div class="bg-gray-100 p-4 rounded-md">
+                                <p><span class="font-medium">Status:</span> <span id="connection-status">Connected</span></p>
+                                <p><span class="font-medium">Mode:</span> <span id="connection-mode">Server</span></p>
+                                <p><span class="font-medium">IP:</span> <span id="connection-ip">192.168.1.5</span></p>
+                                <p><span class="font-medium">Port:</span> <span id="connection-port">8080</span></p>
+                            </div>
+                            <button id="disconnect-button" class="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Disconnect
+                            </button>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-medium text-gray-900 mb-2">Send File</h3>
+                            <div class="flex flex-col space-y-4">
+                                <div class="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center file-upload-area">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                            <span>Upload a file</span>
+                                            <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        Files of any size (large files use chunked transfer)
+                                    </p>
+                                </div>
+                                <button id="send-file-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" disabled>
+                                    Send File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Transfer History -->
+                <div id="file-history-container" class="hidden bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">File Transfer History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filename</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direction</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="file-history" class="bg-white divide-y divide-gray-200">
+                                <!-- File history entries will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="change-password-modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Change Password</h2>
+                    <button id="close-modal-button" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="change-password-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                <form id="change-password-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                            <input type="password" id="current-password" name="current-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+                            <input type="password" id="new-password" name="new-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                            <input type="password" id="confirm-password" name="confirm-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-change-password" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="js/connect.js"></script>
+</body>
+</html>

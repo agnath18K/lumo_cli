@@ -204,6 +204,12 @@ Connect to a peer on a specific port.
 .B lumo connect \fIIP_ADDRESS\fR \-\-path \fIDIRECTORY\fR
 Connect to a peer with a custom download directory.
 .TP
+.B lumo connect \fIIP_ADDRESS\fR \-\-chunked
+Connect to a peer and use chunked transfer for all files (better for large files).
+.TP
+.B lumo connect \fIIP_ADDRESS\fR \-\-path \fIDIRECTORY\fR \-\-chunked
+Connect to a peer with both custom download directory and chunked transfer.
+.TP
 .B lumo connect \-\-help
 Show connect command help.
 
@@ -412,6 +418,12 @@ lumo connect 192.168.1.5
 
 # Connect to a peer on a specific port
 lumo connect 192.168.1.5:9000
+
+# Connect to a peer and use chunked transfer for all files
+lumo connect 192.168.1.5 --chunked
+
+# Files larger than 10MB automatically use chunked transfer
+# for better reliability and performance
 .fi
 
 .SS REST Server and Authentication

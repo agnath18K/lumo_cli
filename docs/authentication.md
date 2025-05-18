@@ -106,7 +106,16 @@ Response:
 
 ## Using Authentication with API Endpoints
 
-All API endpoints (except for `/ping` and `/api/v1/status`) require authentication when the authentication system is enabled. To authenticate, include the JWT token in the `Authorization` header:
+All API endpoints (except for the following) require authentication when the authentication system is enabled:
+
+- `/ping` - Simple ping test
+- `/api/v1/status` - Server status check
+- `/api/v1/connect/upload/init` - Initialize chunked file upload
+- `/api/v1/connect/upload/chunk` - Upload a file chunk
+- `/api/v1/connect/upload/complete` - Complete chunked file upload
+- `/api/v1/connect/ws` - WebSocket connections (authenticated via query parameter)
+
+To authenticate, include the JWT token in the `Authorization` header:
 
 ```bash
 # Execute a command with authentication
@@ -141,6 +150,31 @@ The authentication system is implemented using the following components:
 3. **Middleware**: All API endpoints are protected by an authentication middleware.
 4. **Local Storage**: Credentials are stored locally in the user's config directory.
 5. **Token Refresh**: Refresh tokens are used to obtain new access tokens without requiring the user to log in again.
+
+## Chunked File Transfer Endpoints
+
+The chunked file transfer endpoints are exempt from authentication to allow for efficient file transfers without the overhead of authentication. These endpoints are:
+
+1. **Initialize Upload**:
+   ```bash
+   curl -X POST -H "Content-Type: application/json" \
+     -d '{"filename":"video.mkv","file_size":4831838208}' \
+     http://localhost:7531/api/v1/connect/upload/init
+   ```
+
+2. **Upload Chunk**:
+   ```bash
+   curl -X POST -H "Content-Type: application/octet-stream" \
+     --data-binary @chunk_file.bin \
+     "http://localhost:7531/api/v1/connect/upload/chunk?upload_id=abcdef1234567890&chunk_id=0"
+   ```
+
+3. **Complete Upload**:
+   ```bash
+   curl -X POST "http://localhost:7531/api/v1/connect/upload/complete?upload_id=abcdef1234567890"
+   ```
+
+These endpoints are designed for high-performance file transfers and are particularly useful for large files. The chunked transfer approach allows for better reliability, resumability, and progress tracking compared to traditional file uploads.
 
 ## Troubleshooting
 
@@ -205,11 +239,11 @@ async function login(username, password) {
     },
     body: JSON.stringify({ username, password })
   });
-  
+
   if (!response.ok) {
     throw new Error('Login failed');
   }
-  
+
   return await response.json();
 }
 
@@ -223,11 +257,11 @@ async function executeCommand(token, command) {
     },
     body: JSON.stringify({ command })
   });
-  
+
   if (!response.ok) {
     throw new Error('Command execution failed');
   }
-  
+
   return await response.json();
 }
 
@@ -236,7 +270,7 @@ async function main() {
   try {
     const auth = await login('admin', 'lumo');
     console.log(`Logged in as: ${auth.username}`);
-    
+
     const result = await executeCommand(auth.token, 'What is the capital of France?');
     console.log('Response:', result.output);
   } catch (error) {

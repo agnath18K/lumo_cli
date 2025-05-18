@@ -15,6 +15,7 @@ import (
 	"github.com/agnath18K/lumo/pkg/config"
 	"github.com/agnath18K/lumo/pkg/executor"
 	"github.com/agnath18K/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/utils"
 	"github.com/agnath18K/lumo/pkg/version"
 )
 
@@ -161,6 +162,19 @@ func (s *Server) Start() error {
 	mux.HandleFunc("/api/v1/auth/refresh", s.handleRefreshToken)
 	mux.HandleFunc("/api/v1/auth/change-password", s.handleChangePassword)
 
+	// Register Connect API routes
+	mux.HandleFunc("/api/v1/connect/discover", s.handleConnectDiscover)
+	mux.HandleFunc("/api/v1/connect/start-server", s.handleConnectStartServer)
+	mux.HandleFunc("/api/v1/connect/connect-to-peer", s.handleConnectToPeer)
+	mux.HandleFunc("/api/v1/connect/disconnect", s.handleConnectDisconnect)
+	mux.HandleFunc("/api/v1/connect/send-file", s.handleConnectSendFile)
+	mux.HandleFunc("/api/v1/connect/ws", s.handleConnectWebSocket)
+
+	// Register Chunked File Transfer API routes
+	mux.HandleFunc("/api/v1/connect/upload/init", s.handleInitUpload)
+	mux.HandleFunc("/api/v1/connect/upload/chunk", s.handleUploadChunk)
+	mux.HandleFunc("/api/v1/connect/upload/complete", s.handleCompleteUpload)
+
 	// Add a simple ping endpoint for testing
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
@@ -205,6 +219,26 @@ func (s *Server) Start() error {
 		}
 	}
 
+	// Check if the port is available
+	if !utils.IsPortAvailable(s.config.ServerPort) {
+		// Try to find an available port
+		newPort, err := utils.FindAvailablePort(s.config.ServerPort, 100)
+		if err != nil {
+			return fmt.Errorf("port %d is already in use and no alternative ports are available: %w", s.config.ServerPort, err)
+		}
+
+		// Log the port change
+		if !s.config.ServerQuietOutput {
+			log.Printf("Port %d is already in use. Using port %d instead.", s.config.ServerPort, newPort)
+			log.Printf("This could be due to another Lumo server instance or a Lumo connect session using this port.")
+			log.Printf("To avoid this in the future, configure a different port with: lumo config:server port <port>")
+			log.Printf("%s", utils.GetPortRangeMessage("server"))
+		}
+
+		// Update the port
+		s.config.ServerPort = newPort
+	}
+
 	// Create the server
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%d", s.config.ServerPort),
@@ -219,6 +253,10 @@ func (s *Server) Start() error {
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			if !s.config.ServerQuietOutput {
 				log.Printf("Error starting server: %v", err)
+				if os.IsPermission(err) {
+					log.Printf("This may be due to insufficient permissions to bind to port %d.", s.config.ServerPort)
+					log.Printf("Try using a port number above 1024 with: lumo config:server port <port>")
+				}
 			}
 			return err
 		}
@@ -233,6 +271,10 @@ func (s *Server) Start() error {
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			if !s.config.ServerQuietOutput {
 				log.Printf("Error starting server: %v", err)
+				if os.IsPermission(err) {
+					log.Printf("This may be due to insufficient permissions to bind to port %d.", s.config.ServerPort)
+					log.Printf("Try using a port number above 1024 with: lumo config:server port <port>")
+				}
 			}
 		}
 	}()

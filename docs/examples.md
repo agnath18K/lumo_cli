@@ -432,6 +432,8 @@ cat data.csv | lumo
 
 ## File Transfer with Connect
 
+Lumo Connect allows you to transfer files between machines on the same network. For large files (>10MB), it automatically uses chunked transfer for better reliability and performance.
+
 ```bash
 # Start a server to receive files
 lumo connect --receive
@@ -442,6 +444,9 @@ lumo connect --receive --port 9000
 # Specify a custom download directory
 lumo connect --receive --path ~/Downloads/transfers
 
+# Discover available Lumo Connect services on the network
+lumo connect --discover
+
 # Connect to a peer to send/receive files
 lumo connect 192.168.1.5
 
@@ -451,8 +456,17 @@ lumo connect 192.168.1.5:9000
 # Connect to a peer with a custom download directory
 lumo connect 192.168.1.5 --path ~/Downloads/transfers
 
+# Connect to a peer and use chunked transfer for all files (better for large files)
+lumo connect 192.168.1.5 --chunked
+
+# Connect to a peer with both custom download directory and chunked transfer
+lumo connect 192.168.1.5 --path ~/Downloads/transfers --chunked
+
 # Show connect command help
 lumo connect --help
+
+# Access the web interface for Connect (when server is running)
+# Open a browser and navigate to: http://localhost:7531/connect/
 ```
 
 ## REST Server Commands
@@ -517,6 +531,21 @@ curl http://localhost:7531/api/v1/status
 
 # Simple ping test to check if server is running (no authentication required)
 curl http://localhost:7531/ping
+
+# Chunked File Transfer endpoints (no authentication required)
+
+# Initialize a file upload
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"filename":"video.mkv","file_size":4831838208}' \
+  http://localhost:7531/api/v1/connect/upload/init
+
+# Upload a chunk (replace with your actual upload_id and chunk_id)
+curl -X POST -H "Content-Type: application/octet-stream" \
+  --data-binary @chunk_file.bin \
+  "http://localhost:7531/api/v1/connect/upload/chunk?upload_id=abcdef1234567890&chunk_id=0"
+
+# Complete an upload (replace with your actual upload_id)
+curl -X POST "http://localhost:7531/api/v1/connect/upload/complete?upload_id=abcdef1234567890"
 
 # Authentication endpoints
 
@@ -676,6 +705,77 @@ def change_password(current_password, new_password, token):
         data=json.dumps(payload)
     )
     return response.json()
+
+# Example of chunked file upload with Python
+def upload_large_file(file_path, server_url="http://localhost:7531"):
+    """Upload a large file using chunked transfer."""
+    import os
+    import requests
+    import json
+
+    # Get file info
+    file_size = os.path.getsize(file_path)
+    file_name = os.path.basename(file_path)
+
+    print(f"Uploading {file_name} ({file_size} bytes)")
+
+    # Initialize upload
+    init_response = requests.post(
+        f"{server_url}/api/v1/connect/upload/init",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({
+            "filename": file_name,
+            "file_size": file_size
+        })
+    )
+
+    if not init_response.ok:
+        raise Exception(f"Failed to initialize upload: {init_response.text}")
+
+    upload_data = init_response.json()
+    upload_id = upload_data["upload_id"]
+    chunk_size = upload_data["chunk_size"]
+    total_chunks = len(upload_data["chunks"])
+
+    print(f"Upload initialized with ID: {upload_id}")
+    print(f"Chunk size: {chunk_size} bytes")
+    print(f"Total chunks: {total_chunks}")
+
+    # Upload chunks
+    with open(file_path, "rb") as f:
+        for chunk_id in range(total_chunks):
+            # Calculate progress
+            progress = (chunk_id + 1) * 100 // total_chunks
+            print(f"Uploading chunk {chunk_id+1}/{total_chunks} ({progress}%)")
+
+            # Read chunk
+            chunk_data = f.read(chunk_size)
+
+            # Upload chunk
+            chunk_response = requests.post(
+                f"{server_url}/api/v1/connect/upload/chunk?upload_id={upload_id}&chunk_id={chunk_id}",
+                headers={"Content-Type": "application/octet-stream"},
+                data=chunk_data
+            )
+
+            if not chunk_response.ok:
+                raise Exception(f"Failed to upload chunk {chunk_id}: {chunk_response.text}")
+
+    # Complete upload
+    complete_response = requests.post(
+        f"{server_url}/api/v1/connect/upload/complete?upload_id={upload_id}"
+    )
+
+    if not complete_response.ok:
+        raise Exception(f"Failed to complete upload: {complete_response.text}")
+
+    result = complete_response.json()
+    print(f"Upload completed successfully!")
+    print(f"File saved to: {result['file_path']}")
+    return result["file_path"]
+
+# Example usage:
+# upload_large_file("/path/to/large/file.mp4")
 ```
 
 ### Using the REST API with JavaScript/Node.js
@@ -824,6 +924,104 @@ function changePassword(currentPassword, newPassword) {
       throw error;
     });
 }
+
+// Example of chunked file upload with JavaScript
+async function uploadLargeFile(file) {
+  const baseUrl = 'http://localhost:7531';
+
+  console.log(`Uploading ${file.name} (${file.size} bytes)`);
+
+  try {
+    // Initialize upload
+    const initResponse = await fetch(`${baseUrl}/api/v1/connect/upload/init`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        file_size: file.size
+      })
+    });
+
+    if (!initResponse.ok) {
+      throw new Error(`Failed to initialize upload: ${await initResponse.text()}`);
+    }
+
+    const uploadData = await initResponse.json();
+    const uploadId = uploadData.upload_id;
+    const chunkSize = uploadData.chunk_size;
+    const totalChunks = uploadData.chunks.length;
+
+    console.log(`Upload initialized with ID: ${uploadId}`);
+    console.log(`Chunk size: ${chunkSize} bytes`);
+    console.log(`Total chunks: ${totalChunks}`);
+
+    // Upload chunks
+    for (let chunkId = 0; chunkId < totalChunks; chunkId++) {
+      // Calculate progress
+      const progress = Math.floor((chunkId + 1) * 100 / totalChunks);
+      console.log(`Uploading chunk ${chunkId+1}/${totalChunks} (${progress}%)`);
+
+      // Calculate chunk boundaries
+      const start = chunkId * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+
+      // Read chunk
+      const chunk = file.slice(start, end);
+
+      // Upload chunk
+      const chunkResponse = await fetch(
+        `${baseUrl}/api/v1/connect/upload/chunk?upload_id=${uploadId}&chunk_id=${chunkId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream'
+          },
+          body: chunk
+        }
+      );
+
+      if (!chunkResponse.ok) {
+        throw new Error(`Failed to upload chunk ${chunkId}: ${await chunkResponse.text()}`);
+      }
+    }
+
+    // Complete upload
+    const completeResponse = await fetch(
+      `${baseUrl}/api/v1/connect/upload/complete?upload_id=${uploadId}`,
+      {
+        method: 'POST'
+      }
+    );
+
+    if (!completeResponse.ok) {
+      throw new Error(`Failed to complete upload: ${await completeResponse.text()}`);
+    }
+
+    const result = await completeResponse.json();
+    console.log(`Upload completed successfully!`);
+    console.log(`File saved to: ${result.file_path}`);
+    return result.file_path;
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
+}
+
+// Example usage:
+// const fileInput = document.getElementById('fileInput');
+// fileInput.addEventListener('change', async (event) => {
+//   const file = event.target.files[0];
+//   if (file) {
+//     try {
+//       const filePath = await uploadLargeFile(file);
+//       console.log(`File uploaded to: ${filePath}`);
+//     } catch (error) {
+//       console.error('Upload failed:', error);
+//     }
+//   }
+// });
 ```
 
 ### Using the REST API with HTML/JavaScript (Web Interface)

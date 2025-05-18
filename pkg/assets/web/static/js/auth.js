@@ -10,20 +10,20 @@ const TOKEN_EXPIRY_KEY = 'lumo_token_expiry';
 function isAuthenticated() {
     const token = localStorage.getItem(TOKEN_KEY);
     const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
-    
+
     if (!token || !expiry) {
         return false;
     }
-    
+
     // Check if token is expired
     const expiryDate = new Date(parseInt(expiry));
     const now = new Date();
-    
+
     // If token expires in less than 5 minutes, try to refresh it
     if ((expiryDate - now) < 5 * 60 * 1000) {
         refreshToken();
     }
-    
+
     return expiryDate > now;
 }
 
@@ -37,23 +37,23 @@ async function login(username, password) {
             },
             body: JSON.stringify({ username, password })
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
             throw new Error(errorData.error || response.statusText);
         }
-        
+
         const data = await response.json();
-        
+
         // Save auth data to localStorage
         localStorage.setItem(TOKEN_KEY, data.token);
         localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
         localStorage.setItem(USERNAME_KEY, data.username);
-        
+
         // Calculate and store expiry time
         const expiryTime = new Date().getTime() + (data.expires_in * 1000);
         localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
-        
+
         return data;
     } catch (error) {
         console.error('Login error:', error);
@@ -67,7 +67,7 @@ function logout() {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
-    
+
     // Redirect to login page
     showLoginPage();
 }
@@ -75,12 +75,12 @@ function logout() {
 // Refresh token function
 async function refreshToken() {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    
+
     if (!refreshToken) {
         logout();
         return;
     }
-    
+
     try {
         const response = await fetch('/api/v1/auth/refresh', {
             method: 'POST',
@@ -89,24 +89,24 @@ async function refreshToken() {
             },
             body: JSON.stringify({ refresh_token: refreshToken })
         });
-        
+
         if (!response.ok) {
             // If refresh fails, logout
             logout();
             return;
         }
-        
+
         const data = await response.json();
-        
+
         // Update auth data in localStorage
         localStorage.setItem(TOKEN_KEY, data.token);
         localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
         localStorage.setItem(USERNAME_KEY, data.username);
-        
+
         // Calculate and store expiry time
         const expiryTime = new Date().getTime() + (data.expires_in * 1000);
         localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
-        
+
         return data;
     } catch (error) {
         console.error('Token refresh error:', error);
@@ -118,28 +118,28 @@ async function refreshToken() {
 async function changePassword(currentPassword, newPassword) {
     try {
         const token = localStorage.getItem(TOKEN_KEY);
-        
+
         if (!token) {
             throw new Error('Not authenticated');
         }
-        
+
         const response = await fetch('/api/v1/auth/change-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 current_password: currentPassword,
                 new_password: newPassword
             })
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
             throw new Error(errorData.error || response.statusText);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error('Change password error:', error);
@@ -159,16 +159,47 @@ function getUsername() {
 
 // Show login page
 function showLoginPage() {
-    document.getElementById('login-page').classList.remove('hidden');
-    document.getElementById('app-page').classList.add('hidden');
+    const loginPage = document.getElementById('login-page');
+    if (loginPage) {
+        loginPage.classList.remove('hidden');
+    }
+
+    // Hide app page or connect page based on which one exists
+    const appPage = document.getElementById('app-page');
+    const connectPage = document.getElementById('connect-page');
+
+    if (appPage) {
+        appPage.classList.add('hidden');
+    }
+
+    if (connectPage) {
+        connectPage.classList.add('hidden');
+    }
 }
 
 // Show app page
 function showAppPage() {
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('app-page').classList.remove('hidden');
-    
-    // Update username display
-    const username = getUsername();
-    document.getElementById('username-display').textContent = username;
+    const loginPage = document.getElementById('login-page');
+    const appPage = document.getElementById('app-page');
+
+    if (loginPage && appPage) {
+        loginPage.classList.add('hidden');
+        appPage.classList.remove('hidden');
+
+        // Update username display
+        const username = getUsername();
+        const usernameDisplay = document.getElementById('username-display');
+        if (usernameDisplay) {
+            usernameDisplay.textContent = username;
+        }
+
+        // Check if there's a redirect URL stored
+        const redirectUrl = localStorage.getItem('lumo_redirect_after_login');
+        if (redirectUrl) {
+            // Clear the stored URL
+            localStorage.removeItem('lumo_redirect_after_login');
+            // Redirect to the stored URL
+            window.location.href = redirectUrl;
+        }
+    }
 }

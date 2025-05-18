@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/agnath18K/lumo/pkg/discovery"
+	"github.com/agnath18K/lumo/pkg/utils"
 	"github.com/gorilla/websocket"
 )
 
@@ -34,10 +36,18 @@ type ConnectManager struct {
 	mode         string // "server", "client", or "duplex"
 	downloadPath string // Custom download path
 	port         int    // Custom port
+	discoverer   discovery.Discoverer
+	advertised   bool
+	useChunked   bool // Whether to use chunked transfer for all files
+}
+
+// GetPort returns the current port
+func (m *ConnectManager) GetPort() int {
+	return m.port
 }
 
 // NewConnectManager creates a new connect manager
-func NewConnectManager(downloadPath string, port int) *ConnectManager {
+func NewConnectManager(downloadPath string, port int, useChunked ...bool) *ConnectManager {
 	// Set default values if not provided
 	if downloadPath == "" {
 		homeDir, err := os.UserHomeDir()
@@ -52,6 +62,15 @@ func NewConnectManager(downloadPath string, port int) *ConnectManager {
 		port = 8080 // Default port
 	}
 
+	// Check if useChunked is provided
+	chunkedTransfer := false
+	if len(useChunked) > 0 {
+		chunkedTransfer = useChunked[0]
+	}
+
+	// Create a new discoverer
+	discoverer := discovery.NewDiscoverer()
+
 	return &ConnectManager{
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -63,6 +82,9 @@ func NewConnectManager(downloadPath string, port int) *ConnectManager {
 		mode:         "duplex", // Default to duplex mode
 		downloadPath: downloadPath,
 		port:         port,
+		discoverer:   discoverer,
+		advertised:   false,
+		useChunked:   chunkedTransfer,
 	}
 }
 
@@ -89,10 +111,45 @@ func (m *ConnectManager) StartReceiver(ctx context.Context) error {
 		username = os.Getenv("USERNAME")
 	}
 
+	// Check if the port is available
+	if !utils.IsPortAvailable(m.port) {
+		// Try to find an available port
+		newPort, err := utils.FindAvailablePort(m.port, 100)
+		if err != nil {
+			return fmt.Errorf("port %d is already in use and no alternative ports are available: %w", m.port, err)
+		}
+
+		// Log the port change
+		log.Printf("Port %d is already in use. Using port %d instead.", m.port, newPort)
+		log.Printf("This could be due to another Lumo connect session or a Lumo server using this port.")
+		log.Printf("To avoid this in the future, specify a different port with --port option.")
+		log.Printf("%s", utils.GetPortRangeMessage("connect"))
+
+		// Update the port
+		m.port = newPort
+	}
+
 	// Create server
 	m.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", m.port),
 		Handler: mux,
+	}
+
+	// Start the discovery service
+	if err := m.discoverer.Start(ctx); err != nil {
+		log.Printf("Warning: Failed to start discovery service: %v", err)
+	}
+
+	// Advertise the service
+	info := map[string]string{
+		"hostname": hostname,
+		"username": username,
+		"mode":     m.mode,
+	}
+	if err := m.discoverer.Advertise(ctx, "Lumo Connect", m.port, info); err != nil {
+		log.Printf("Warning: Failed to advertise service: %v", err)
+	} else {
+		m.advertised = true
 	}
 
 	// Print fancy header
@@ -110,6 +167,7 @@ func (m *ConnectManager) StartReceiver(ctx context.Context) error {
 	fmt.Printf("│ \033[1;97mHostname:\033[1;36m %-35s │\n", hostname)
 	fmt.Printf("│ \033[1;97mUser:\033[1;36m %-39s │\n", username)
 	fmt.Printf("│ \033[1;97mDownload Path:\033[1;36m %-30s │\n", m.downloadPath)
+	fmt.Printf("│ \033[1;97mDiscoverable:\033[1;36m %-32v │\n", m.advertised)
 	fmt.Printf("└─────────────────────────────────────────────────┘\n\n")
 
 	if m.mode == "duplex" {
@@ -127,6 +185,10 @@ func (m *ConnectManager) StartReceiver(ctx context.Context) error {
 	go func() {
 		if err := m.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf("Error starting server: %v", err)
+			if os.IsPermission(err) {
+				log.Printf("This may be due to insufficient permissions to bind to port %d.", m.port)
+				log.Printf("Try using a port number above 1024 with: --port <port>")
+			}
 		}
 	}()
 
@@ -137,6 +199,20 @@ func (m *ConnectManager) StartReceiver(ctx context.Context) error {
 
 	// Wait for context cancellation
 	<-ctx.Done()
+
+	// Stop advertising the service
+	if m.advertised {
+		if err := m.discoverer.StopAdvertising(); err != nil {
+			log.Printf("Warning: Failed to stop advertising service: %v", err)
+		}
+		m.advertised = false
+	}
+
+	// Stop the discovery service
+	if err := m.discoverer.Stop(); err != nil {
+		log.Printf("Warning: Failed to stop discovery service: %v", err)
+	}
+
 	return m.server.Shutdown(context.Background())
 }
 
@@ -256,9 +332,6 @@ func (m *ConnectManager) readStdinForFilePaths(conn *websocket.Conn) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		filePath := scanner.Text()
-
-		// Debug: Print what we received
-		fmt.Printf("\033[1;33mDebug: Received input: '%s'\033[0m\n", filePath)
 
 		// Handle special formats from drag-and-drop
 		// Some terminals prefix with "file://" or have URL encoding
@@ -430,6 +503,32 @@ func (m *ConnectManager) sendFileToAllClients(filePath string) {
 	sizeStr := formatFileSize(fileInfo.Size())
 	fmt.Printf("\033[1;32m📤 Sending file: %s (%s) to %d clients...\033[0m\n", filename, sizeStr, numConnections)
 
+	// Check if we should use chunked transfer
+	if m.useChunked || fileInfo.Size() > 10*1024*1024 { // Use chunked if explicitly requested or file is larger than 10MB
+		// For large files, use chunked transfer
+		fmt.Printf("\033[1;33mℹ️ Large file detected. Using chunked transfer...\033[0m\n")
+
+		// Get local IP
+		localIP, err := getLocalIP()
+		if err != nil {
+			localIP = "localhost"
+		}
+
+		// Create a chunked client
+		client := NewChunkedClient(fmt.Sprintf("http://%s:7531", localIP), m.downloadPath, DefaultChunkSize)
+
+		// Upload the file
+		resultPath, err := client.UploadFile(filePath, nil)
+		if err != nil {
+			fmt.Printf("\033[1;31m❌ Error uploading file using chunked transfer: %v\033[0m\n", err)
+			return
+		}
+
+		fmt.Printf("\033[1;32m📤 File uploaded successfully to: %s\033[0m\n", resultPath)
+		return
+	}
+
+	// For small files, use WebSocket transfer
 	// Read file content
 	content, err := io.ReadAll(file)
 	if err != nil {
@@ -486,6 +585,36 @@ func (m *ConnectManager) sendFile(conn *websocket.Conn, filePath string) error {
 	sizeStr := formatFileSize(fileInfo.Size())
 	fmt.Printf("\033[1;32m📤 Sending file: %s (%s)...\033[0m\n", filename, sizeStr)
 
+	// Check if we should use chunked transfer
+	if m.useChunked || fileInfo.Size() > 10*1024*1024 { // Use chunked if explicitly requested or file is larger than 10MB
+		// For large files, use chunked transfer
+		fmt.Printf("\033[1;33mℹ️ Large file detected. Using chunked transfer...\033[0m\n")
+
+		// Get peer IP and port from WebSocket connection
+		peerAddr := conn.RemoteAddr().String()
+		peerIP, _, err := net.SplitHostPort(peerAddr)
+		if err != nil {
+			// If we can't get the peer IP from the connection, try to get it from the local connection
+			peerIP, err = getLocalIP()
+			if err != nil {
+				peerIP = "localhost"
+			}
+		}
+
+		// Create a chunked client
+		client := NewChunkedClient(fmt.Sprintf("http://%s:7531", peerIP), m.downloadPath, DefaultChunkSize)
+
+		// Upload the file
+		resultPath, err := client.UploadFile(filePath, nil)
+		if err != nil {
+			return fmt.Errorf("failed to upload file using chunked transfer: %w", err)
+		}
+
+		fmt.Printf("\033[1;32m📤 File uploaded successfully to: %s\033[0m\n", resultPath)
+		return nil
+	}
+
+	// For small files, use WebSocket transfer
 	// Show progress bar
 	fmt.Printf("\033[1;32m[                    ] 0%%\033[0m")
 	fmt.Printf("\r")
@@ -595,4 +724,51 @@ func openFileDialog() (string, error) {
 
 	// Trim newline from output
 	return strings.TrimSpace(string(output)), nil
+}
+
+// DiscoverServices discovers available Lumo Connect services on the network
+func (m *ConnectManager) DiscoverServices(ctx context.Context) ([]discovery.Service, error) {
+	// Start the discovery service if not already started
+	if m.discoverer == nil {
+		m.discoverer = discovery.NewDiscoverer()
+		if err := m.discoverer.Start(ctx); err != nil {
+			return nil, fmt.Errorf("failed to start discovery service: %w", err)
+		}
+	}
+
+	// Browse for services
+	services, err := m.discoverer.Browse(ctx, discovery.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to browse for services: %w", err)
+	}
+
+	return services, nil
+}
+
+// PrintDiscoveredServices prints a list of discovered services
+func (m *ConnectManager) PrintDiscoveredServices(services []discovery.Service) {
+	if len(services) == 0 {
+		fmt.Printf("\033[1;33mNo Lumo Connect services found on the network\033[0m\n")
+		return
+	}
+
+	fmt.Printf("\033[1;36m") // Cyan color
+	fmt.Printf("┌─────────────────────────────────────────────────┐\n")
+	fmt.Printf("│ 🔍 \033[1;97mDiscovered Lumo Connect Services\033[1;36m             │\n")
+	fmt.Printf("├─────────────────────────────────────────────────┤\n")
+
+	for i, service := range services {
+		fmt.Printf("│ \033[1;97m%d.\033[1;36m %-45s │\n", i+1, service.Name)
+		fmt.Printf("│   \033[1;97mIP:\033[1;36m %-43s │\n", service.IP)
+		fmt.Printf("│   \033[1;97mPort:\033[1;36m %-41d │\n", service.Port)
+		if username, ok := service.Info["username"]; ok {
+			fmt.Printf("│   \033[1;97mUser:\033[1;36m %-41s │\n", username)
+		}
+		if i < len(services)-1 {
+			fmt.Printf("├─────────────────────────────────────────────────┤\n")
+		}
+	}
+
+	fmt.Printf("└─────────────────────────────────────────────────┘\n")
+	fmt.Printf("\033[0m") // Reset color
 }
