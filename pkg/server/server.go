@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/agnath18K/lumo/pkg/assets"
 	"github.com/agnath18K/lumo/pkg/config"
 	"github.com/agnath18K/lumo/pkg/executor"
 	"github.com/agnath18K/lumo/pkg/nlp"
+	"github.com/agnath18K/lumo/pkg/version"
 )
 
 // Server represents the REST API server for Lumo
@@ -66,7 +69,7 @@ func (s *Server) Start() error {
 	// Create a new router
 	mux := http.NewServeMux()
 
-	// Register routes
+	// Register API routes
 	mux.HandleFunc("/api/v1/execute", s.handleExecute)
 	mux.HandleFunc("/api/v1/status", s.handleStatus)
 
@@ -74,6 +77,45 @@ func (s *Server) Start() error {
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
+
+	// Try to use embedded web files first
+	embeddedFS := assets.GetWebFileSystem()
+
+	// Check if we have embedded web files
+	hasEmbedded := assets.HasEmbeddedWebFiles()
+
+	// Always log whether we have embedded files or not
+	log.Printf("Has embedded web files: %v", hasEmbedded)
+
+	if hasEmbedded {
+		// Create a file server handler for the embedded web files
+		fs := http.FileServer(embeddedFS)
+
+		// Register the file server handler for the root path
+		mux.Handle("/", fs)
+
+		if !s.config.ServerQuietOutput {
+			log.Printf("Serving web client from embedded files")
+		}
+	} else {
+		// Fall back to the web directory if embedded files are not available
+		// Check if the web directory exists
+		if _, err := os.Stat("web/static"); !os.IsNotExist(err) {
+			// Create a file server handler for the web/static directory
+			fs := http.FileServer(http.Dir("web/static"))
+
+			// Register the file server handler for the root path
+			mux.Handle("/", fs)
+
+			if !s.config.ServerQuietOutput {
+				log.Printf("Serving web client from web/static directory")
+			}
+		} else {
+			if !s.config.ServerQuietOutput {
+				log.Printf("Web client files not found, web interface will not be available")
+			}
+		}
+	}
 
 	// Create the server
 	s.server = &http.Server{
@@ -233,8 +275,8 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	// Create the response
 	resp := StatusResponse{
 		Status:  "running",
-		Version: "1.0.1", // This should be dynamically fetched from version package
-		Uptime:  "N/A",   // This could be calculated if we track server start time
+		Version: version.GetShortVersion(), // Dynamically fetch from version package
+		Uptime:  "N/A",                     // This could be calculated if we track server start time
 	}
 
 	// Set the content type

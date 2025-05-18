@@ -34,6 +34,7 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 - **Desktop Assistant**: Control your desktop environment with natural language
 - **System Monitoring**: Track system health and performance
 - **Pipe Support**: Analyze and explain command outputs
+- **Web Interface**: Access Lumo through a browser-based interface
 - **Multiple AI Providers**: Support for Google Gemini, OpenAI, and Ollama
 
 ## 🚀 Installation
@@ -78,6 +79,10 @@ lumo speed
 # Desktop assistant
 lumo desktop:"close firefox window"
 lumo desktop:"launch terminal"
+
+# Web interface - start the server and access via browser
+lumo server:start
+# Then open http://localhost:7531 in your browser
 ```
 
 **For complete usage documentation and examples, visit [getlumo.dev/documentation](https://getlumo.dev/documentation)**

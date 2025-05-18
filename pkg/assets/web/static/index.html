@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Web Client</title>
+    <style>
+        :root {
+            --primary-color: #4a6bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-online {
+            background-color: var(--success-color);
+        }
+
+        .status-offline {
+            background-color: var(--danger-color);
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        select {
+            margin-right: 10px;
+            min-width: 120px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3a5ae8;
+        }
+
+        .output {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: white;
+            border-color: #ddd;
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 10px;
+            color: var(--secondary-color);
+            font-size: 14px;
+        }
+
+        .examples {
+            margin-top: 20px;
+        }
+
+        .example-item {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            background-color: #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .example-item:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Lumo Web Client</h1>
+            <p>A simple web interface for interacting with the Lumo server</p>
+        </header>
+
+        <div class="card">
+            <div class="server-status">
+                <div id="statusIndicator" class="status-indicator status-offline"></div>
+                <span id="statusText">Checking server status...</span>
+            </div>
+            <div id="serverInfo"></div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="command">Command</div>
+            <div class="tab" data-tab="examples">Examples</div>
+            <div class="tab" data-tab="help">Help</div>
+        </div>
+
+        <div id="commandTab" class="tab-content active">
+            <div class="card">
+                <h2>Execute Command</h2>
+                <div class="input-group">
+                    <input type="text" id="commandInput" placeholder="Enter your command or question...">
+                    <select id="commandType">
+                        <option value="">AI (default)</option>
+                        <option value="shell">Shell</option>
+                        <option value="agent">Agent</option>
+                        <option value="system_health">System Health</option>
+                        <option value="system_report">System Report</option>
+                        <option value="help">Help</option>
+                        <option value="config">Config</option>
+                    </select>
+                    <button id="executeButton" onclick="executeCommand()">Execute</button>
+                </div>
+                <h3>Output:</h3>
+                <pre id="outputArea" class="output">Results will appear here...</pre>
+            </div>
+        </div>
+
+        <div id="examplesTab" class="tab-content">
+            <div class="card">
+                <h2>Example Commands</h2>
+                <p>Click on any example to use it:</p>
+
+                <h3>AI Queries</h3>
+                <div class="examples">
+                    <div class="example-item" data-command="How do I find large files in Linux?" data-type="">How do I find large files in Linux?</div>
+                    <div class="example-item" data-command="What's the difference between TCP and UDP?" data-type="">What's the difference between TCP and UDP?</div>
+                    <div class="example-item" data-command="How to use grep with regular expressions?" data-type="">How to use grep with regular expressions?</div>
+                </div>
+
+                <h3>Shell Commands</h3>
+                <div class="examples">
+                    <div class="example-item" data-command="ls -la" data-type="shell">ls -la</div>
+                    <div class="example-item" data-command="df -h" data-type="shell">df -h</div>
+                    <div class="example-item" data-command="uname -a" data-type="shell">uname -a</div>
+                </div>
+
+                <h3>System Commands</h3>
+                <div class="examples">
+                    <div class="example-item" data-command="check system health" data-type="system_health">Check system health</div>
+                    <div class="example-item" data-command="generate report" data-type="system_report">Generate system report</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="helpTab" class="tab-content">
+            <div class="card">
+                <h2>Help</h2>
+                <p>This web interface allows you to interact with the Lumo server running on your system.</p>
+                <h3>Getting Started</h3>
+                <ol>
+                    <li>Make sure the Lumo server is running (use <code>lumo server:start</code> in your terminal)</li>
+                    <li>Check the server status indicator at the top of this page</li>
+                    <li>Enter a command or question in the input field</li>
+                    <li>Select the appropriate command type from the dropdown</li>
+                    <li>Click "Execute" to send the command to the server</li>
+                </ol>
+                <h3>Command Types</h3>
+                <ul>
+                    <li><strong>AI (default)</strong> - Natural language queries processed by AI</li>
+                    <li><strong>Shell</strong> - Execute shell commands on the server</li>
+                    <li><strong>Agent</strong> - Use Lumo's agent capabilities</li>
+                    <li><strong>System Health</strong> - Check system health</li>
+                    <li><strong>System Report</strong> - Generate system reports</li>
+                    <li><strong>Help</strong> - Get help information</li>
+                    <li><strong>Config</strong> - Modify configuration</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>Lumo Web Client v1.0 | <a href="https://github.com/agnath18K/lumo" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Server configuration
+        // Use the current URL instead of hardcoding the server URL
+        const SERVER_URL = window.location.origin;
+        let serverOnline = false;
+
+        // DOM elements
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const serverInfo = document.getElementById('serverInfo');
+        const commandInput = document.getElementById('commandInput');
+        const commandType = document.getElementById('commandType');
+        const executeButton = document.getElementById('executeButton');
+        const outputArea = document.getElementById('outputArea');
+
+        // Check server status on page load
+        window.addEventListener('load', checkServerStatus);
+
+        // Set up tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}Tab`).classList.add('active');
+            });
+        });
+
+        // Set up example commands
+        document.querySelectorAll('.example-item').forEach(example => {
+            example.addEventListener('click', () => {
+                commandInput.value = example.dataset.command;
+                commandType.value = example.dataset.type;
+
+                // Switch to command tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('.tab[data-tab="command"]').classList.add('active');
+                document.getElementById('commandTab').classList.add('active');
+
+                // Focus on the execute button
+                executeButton.focus();
+            });
+        });
+
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                // Try to ping the server
+                const pingResponse = await fetch(`${SERVER_URL}/ping`, { timeout: 2000 });
+
+                if (pingResponse.ok) {
+                    // If ping is successful, get server status
+                    const statusResponse = await fetch(`${SERVER_URL}/api/v1/status`);
+                    const statusData = await statusResponse.json();
+
+                    // Update UI to show server is online
+                    statusIndicator.classList.remove('status-offline');
+                    statusIndicator.classList.add('status-online');
+                    statusText.textContent = 'Server is online';
+                    serverInfo.innerHTML = `
+                        <p><strong>Status:</strong> ${statusData.status}</p>
+                        <p><strong>Version:</strong> ${statusData.version}</p>
+                        <p><strong>Uptime:</strong> ${statusData.uptime}</p>
+                    `;
+                    serverOnline = true;
+                } else {
+                    setServerOffline();
+                }
+            } catch (error) {
+                setServerOffline();
+            }
+        }
+
+        // Set server status to offline
+        function setServerOffline() {
+            statusIndicator.classList.remove('status-online');
+            statusIndicator.classList.add('status-offline');
+            statusText.textContent = 'Server is offline';
+            serverInfo.innerHTML = `
+                <p>The Lumo server is not running or not accessible.</p>
+                <p>Start the server with: <code>lumo server:start</code></p>
+            `;
+            serverOnline = false;
+        }
+
+        // Execute command
+        async function executeCommand() {
+            // Get command and type
+            const command = commandInput.value.trim();
+            const type = commandType.value;
+
+            // Validate input
+            if (!command) {
+                outputArea.textContent = 'Please enter a command';
+                return;
+            }
+
+            // Check if server is online
+            if (!serverOnline) {
+                outputArea.textContent = 'Server is offline. Please start the server with: lumo server:start';
+                return;
+            }
+
+            // Show loading state
+            executeButton.innerHTML = '<span class="loading"></span>';
+            executeButton.disabled = true;
+            outputArea.textContent = 'Executing command...';
+
+            try {
+                // Prepare payload
+                const payload = { command };
+                if (type) {
+                    payload.type = type;
+                }
+
+                // Send request to server
+                const response = await fetch(`${SERVER_URL}/api/v1/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Parse response
+                const data = await response.json();
+
+                // Display result
+                if (data.success) {
+                    outputArea.textContent = data.output;
+                } else {
+                    outputArea.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                outputArea.textContent = `Error: ${error.message}`;
+                console.error('Error:', error);
+            } finally {
+                // Reset button state
+                executeButton.innerHTML = 'Execute';
+                executeButton.disabled = false;
+            }
+        }
+
+        // Allow executing command with Enter key
+        commandInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                executeCommand();
+            }
+        });
+    </script>
+</body>
+</html>
