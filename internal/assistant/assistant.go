@@ -89,6 +89,19 @@ func (a *Assistant) GetSupportedCommands() []string {
 		"sound:get-input-mute",
 		"sound:list-devices",
 		"sound:set-default-device <device-id>",
+		"connectivity:list-devices",
+		"connectivity:enable-wifi",
+		"connectivity:disable-wifi",
+		"connectivity:wifi-status",
+		"connectivity:enable-bluetooth",
+		"connectivity:disable-bluetooth",
+		"connectivity:bluetooth-status",
+		"connectivity:enable-airplane-mode",
+		"connectivity:disable-airplane-mode",
+		"connectivity:airplane-mode-status",
+		"connectivity:enable-hotspot <ssid> [password]",
+		"connectivity:disable-hotspot",
+		"connectivity:hotspot-status",
 	}
 }
 
@@ -126,5 +139,18 @@ func (a *Assistant) GetCommandExamples() []string {
 		"Mute the microphone",
 		"Show all sound devices",
 		"Get current volume level",
+		"Show all network devices",
+		"Turn on WiFi",
+		"Turn off WiFi",
+		"Check WiFi status",
+		"Enable Bluetooth",
+		"Disable Bluetooth",
+		"Check Bluetooth status",
+		"Turn on airplane mode",
+		"Turn off airplane mode",
+		"Check airplane mode status",
+		"Create a WiFi hotspot with name 'MyHotspot'",
+		"Turn off WiFi hotspot",
+		"Check hotspot status",
 	}
 }

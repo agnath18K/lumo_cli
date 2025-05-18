@@ -86,6 +86,21 @@ func (p *Processor) registerCommandPatterns() {
 	p.commandPatterns["stop media"] = p.handleStopMedia
 	p.commandPatterns["next track"] = p.handleNextTrack
 	p.commandPatterns["previous track"] = p.handlePreviousTrack
+
+	// Connectivity commands
+	p.commandPatterns["list network devices"] = p.handleListNetworkDevices
+	p.commandPatterns["enable wifi"] = p.handleEnableWifi
+	p.commandPatterns["disable wifi"] = p.handleDisableWifi
+	p.commandPatterns["wifi status"] = p.handleWifiStatus
+	p.commandPatterns["enable bluetooth"] = p.handleEnableBluetooth
+	p.commandPatterns["disable bluetooth"] = p.handleDisableBluetooth
+	p.commandPatterns["bluetooth status"] = p.handleBluetoothStatus
+	p.commandPatterns["enable airplane mode"] = p.handleEnableAirplaneMode
+	p.commandPatterns["disable airplane mode"] = p.handleDisableAirplaneMode
+	p.commandPatterns["airplane mode status"] = p.handleAirplaneModeStatus
+	p.commandPatterns["enable hotspot"] = p.handleEnableHotspot
+	p.commandPatterns["disable hotspot"] = p.handleDisableHotspot
+	p.commandPatterns["hotspot status"] = p.handleHotspotStatus
 }
 
 // Process processes a natural language command
@@ -291,6 +306,47 @@ func (p *Processor) inferCommand(input string) (*core.Command, error) {
 	if strings.Contains(input, "chrome") {
 		fmt.Printf("DEBUG: Special case: chrome command detected\n")
 		return p.handleLaunchApplication("launch application chrome")
+	}
+
+	// Check for connectivity commands
+	if strings.Contains(input, "list") && (strings.Contains(input, "network") || strings.Contains(input, "device")) {
+		return p.handleListNetworkDevices(input)
+	}
+	if (strings.Contains(input, "enable") || strings.Contains(input, "turn on")) && strings.Contains(input, "wifi") {
+		return p.handleEnableWifi(input)
+	}
+	if (strings.Contains(input, "disable") || strings.Contains(input, "turn off")) && strings.Contains(input, "wifi") {
+		return p.handleDisableWifi(input)
+	}
+	if strings.Contains(input, "status") && strings.Contains(input, "wifi") {
+		return p.handleWifiStatus(input)
+	}
+	if (strings.Contains(input, "enable") || strings.Contains(input, "turn on")) && strings.Contains(input, "bluetooth") {
+		return p.handleEnableBluetooth(input)
+	}
+	if (strings.Contains(input, "disable") || strings.Contains(input, "turn off")) && strings.Contains(input, "bluetooth") {
+		return p.handleDisableBluetooth(input)
+	}
+	if strings.Contains(input, "status") && strings.Contains(input, "bluetooth") {
+		return p.handleBluetoothStatus(input)
+	}
+	if (strings.Contains(input, "enable") || strings.Contains(input, "turn on")) && strings.Contains(input, "airplane") {
+		return p.handleEnableAirplaneMode(input)
+	}
+	if (strings.Contains(input, "disable") || strings.Contains(input, "turn off")) && strings.Contains(input, "airplane") {
+		return p.handleDisableAirplaneMode(input)
+	}
+	if strings.Contains(input, "status") && strings.Contains(input, "airplane") {
+		return p.handleAirplaneModeStatus(input)
+	}
+	if (strings.Contains(input, "enable") || strings.Contains(input, "turn on") || strings.Contains(input, "create")) && strings.Contains(input, "hotspot") {
+		return p.handleEnableHotspot(input)
+	}
+	if (strings.Contains(input, "disable") || strings.Contains(input, "turn off")) && strings.Contains(input, "hotspot") {
+		return p.handleDisableHotspot(input)
+	}
+	if strings.Contains(input, "status") && strings.Contains(input, "hotspot") {
+		return p.handleHotspotStatus(input)
 	}
 
 	// If no command can be inferred, return an error

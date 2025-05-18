@@ -251,3 +251,99 @@ func (e *BaseEnvironment) SetDefaultSoundDevice(ctx context.Context, deviceID st
 	// This should be overridden by specific implementations
 	return fmt.Errorf("not implemented")
 }
+
+// GetNetworkDevices gets a list of available network devices
+func (e *BaseEnvironment) GetNetworkDevices(ctx context.Context) ([]core.NetworkDevice, error) {
+	// This should be overridden by specific implementations
+	return nil, fmt.Errorf("not implemented")
+}
+
+// EnableNetworkDevice enables a network device
+func (e *BaseEnvironment) EnableNetworkDevice(ctx context.Context, deviceID string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// DisableNetworkDevice disables a network device
+func (e *BaseEnvironment) DisableNetworkDevice(ctx context.Context, deviceID string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// ConnectNetworkDevice connects to a network device
+func (e *BaseEnvironment) ConnectNetworkDevice(ctx context.Context, deviceID string, params map[string]interface{}) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// DisconnectNetworkDevice disconnects from a network device
+func (e *BaseEnvironment) DisconnectNetworkDevice(ctx context.Context, deviceID string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// SetAirplaneMode sets the airplane mode state
+func (e *BaseEnvironment) SetAirplaneMode(ctx context.Context, enabled bool) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetAirplaneMode gets the current airplane mode state
+func (e *BaseEnvironment) GetAirplaneMode(ctx context.Context) (bool, error) {
+	// This should be overridden by specific implementations
+	return false, fmt.Errorf("not implemented")
+}
+
+// EnableWifi enables WiFi
+func (e *BaseEnvironment) EnableWifi(ctx context.Context) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// DisableWifi disables WiFi
+func (e *BaseEnvironment) DisableWifi(ctx context.Context) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetWifiStatus gets the current WiFi status
+func (e *BaseEnvironment) GetWifiStatus(ctx context.Context) (bool, error) {
+	// This should be overridden by specific implementations
+	return false, fmt.Errorf("not implemented")
+}
+
+// EnableBluetooth enables Bluetooth
+func (e *BaseEnvironment) EnableBluetooth(ctx context.Context) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// DisableBluetooth disables Bluetooth
+func (e *BaseEnvironment) DisableBluetooth(ctx context.Context) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetBluetoothStatus gets the current Bluetooth status
+func (e *BaseEnvironment) GetBluetoothStatus(ctx context.Context) (bool, error) {
+	// This should be overridden by specific implementations
+	return false, fmt.Errorf("not implemented")
+}
+
+// EnableHotspot enables WiFi hotspot
+func (e *BaseEnvironment) EnableHotspot(ctx context.Context, ssid, password string) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// DisableHotspot disables WiFi hotspot
+func (e *BaseEnvironment) DisableHotspot(ctx context.Context) error {
+	// This should be overridden by specific implementations
+	return fmt.Errorf("not implemented")
+}
+
+// GetHotspotStatus gets the current WiFi hotspot status
+func (e *BaseEnvironment) GetHotspotStatus(ctx context.Context) (bool, map[string]interface{}, error) {
+	// This should be overridden by specific implementations
+	return false, nil, fmt.Errorf("not implemented")
+}

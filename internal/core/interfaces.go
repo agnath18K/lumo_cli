@@ -117,6 +117,54 @@ type DesktopEnvironment interface {
 
 	// SetDefaultSoundDevice sets the default sound device
 	SetDefaultSoundDevice(ctx context.Context, deviceID string) error
+
+	// GetNetworkDevices gets a list of available network devices
+	GetNetworkDevices(ctx context.Context) ([]NetworkDevice, error)
+
+	// EnableNetworkDevice enables a network device
+	EnableNetworkDevice(ctx context.Context, deviceID string) error
+
+	// DisableNetworkDevice disables a network device
+	DisableNetworkDevice(ctx context.Context, deviceID string) error
+
+	// ConnectNetworkDevice connects to a network device
+	ConnectNetworkDevice(ctx context.Context, deviceID string, params map[string]interface{}) error
+
+	// DisconnectNetworkDevice disconnects from a network device
+	DisconnectNetworkDevice(ctx context.Context, deviceID string) error
+
+	// SetAirplaneMode sets the airplane mode state
+	SetAirplaneMode(ctx context.Context, enabled bool) error
+
+	// GetAirplaneMode gets the current airplane mode state
+	GetAirplaneMode(ctx context.Context) (bool, error)
+
+	// EnableWifi enables WiFi
+	EnableWifi(ctx context.Context) error
+
+	// DisableWifi disables WiFi
+	DisableWifi(ctx context.Context) error
+
+	// GetWifiStatus gets the current WiFi status
+	GetWifiStatus(ctx context.Context) (bool, error)
+
+	// EnableBluetooth enables Bluetooth
+	EnableBluetooth(ctx context.Context) error
+
+	// DisableBluetooth disables Bluetooth
+	DisableBluetooth(ctx context.Context) error
+
+	// GetBluetoothStatus gets the current Bluetooth status
+	GetBluetoothStatus(ctx context.Context) (bool, error)
+
+	// EnableHotspot enables WiFi hotspot
+	EnableHotspot(ctx context.Context, ssid, password string) error
+
+	// DisableHotspot disables WiFi hotspot
+	DisableHotspot(ctx context.Context) error
+
+	// GetHotspotStatus gets the current WiFi hotspot status
+	GetHotspotStatus(ctx context.Context) (bool, map[string]interface{}, error)
 }
 
 // DesktopFactory creates desktop environment instances

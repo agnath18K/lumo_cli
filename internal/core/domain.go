@@ -18,6 +18,8 @@ const (
 	CommandTypeAppearance CommandType = "appearance"
 	// CommandTypeSound represents sound settings commands
 	CommandTypeSound CommandType = "sound"
+	// CommandTypeConnectivity represents network connectivity commands
+	CommandTypeConnectivity CommandType = "connectivity"
 )
 
 // Command represents a desktop command to be executed
@@ -66,6 +68,8 @@ const (
 	CapabilityAppearanceManagement Capability = "appearance_management"
 	// CapabilitySoundManagement represents sound settings management capabilities
 	CapabilitySoundManagement Capability = "sound_management"
+	// CapabilityConnectivityManagement represents network connectivity management capabilities
+	CapabilityConnectivityManagement Capability = "connectivity_management"
 )
 
 // Window represents a desktop window
@@ -146,4 +150,36 @@ type SoundDevice struct {
 	Volume int
 	// Muted indicates whether the device is muted
 	Muted bool
+}
+
+// NetworkDeviceType represents the type of network device
+type NetworkDeviceType string
+
+const (
+	// NetworkDeviceTypeWifi represents a WiFi device
+	NetworkDeviceTypeWifi NetworkDeviceType = "wifi"
+	// NetworkDeviceTypeBluetooth represents a Bluetooth device
+	NetworkDeviceTypeBluetooth NetworkDeviceType = "bluetooth"
+	// NetworkDeviceTypeEthernet represents an Ethernet device
+	NetworkDeviceTypeEthernet NetworkDeviceType = "ethernet"
+	// NetworkDeviceTypeHotspot represents a WiFi hotspot
+	NetworkDeviceTypeHotspot NetworkDeviceType = "hotspot"
+)
+
+// NetworkDevice represents a network device (WiFi, Bluetooth, Ethernet, etc.)
+type NetworkDevice struct {
+	// ID is the unique identifier for the network device
+	ID string
+	// Name is the human-readable name of the device
+	Name string
+	// Type is the type of network device
+	Type NetworkDeviceType
+	// Enabled indicates whether the device is enabled
+	Enabled bool
+	// Connected indicates whether the device is connected
+	Connected bool
+	// Address is the device address (MAC address, IP address, etc.)
+	Address string
+	// Properties contains additional device-specific properties
+	Properties map[string]interface{}
 }

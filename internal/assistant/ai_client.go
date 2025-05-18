@@ -45,6 +45,7 @@ Valid command types:
 - media (for media operations)
 - appearance (for appearance settings)
 - sound (for sound settings)
+- connectivity (for network connectivity settings)
 
 Valid actions for window:
 - close (close a window)
@@ -97,6 +98,21 @@ Valid actions for sound:
 - list-devices (list available sound devices)
 - set-default-device (set default sound device)
 
+Valid actions for connectivity:
+- list-devices (list all network devices)
+- enable-wifi (enable WiFi)
+- disable-wifi (disable WiFi)
+- wifi-status (get WiFi status)
+- enable-bluetooth (enable Bluetooth)
+- disable-bluetooth (disable Bluetooth)
+- bluetooth-status (get Bluetooth status)
+- enable-airplane-mode (enable airplane mode)
+- disable-airplane-mode (disable airplane mode)
+- airplane-mode-status (get airplane mode status)
+- enable-hotspot (enable WiFi hotspot)
+- disable-hotspot (disable WiFi hotspot)
+- hotspot-status (get WiFi hotspot status)
+
 Examples:
 - "Close Firefox window" -> "window:close:firefox"
 - "Launch Terminal" -> "application:launch:gnome-terminal"
@@ -113,6 +129,11 @@ Examples:
 - "Unmute the microphone" -> "sound:set-input-mute:false"
 - "Show sound devices" -> "sound:list-devices:"
 - "Set microphone volume to 75 percent" -> "sound:set-input-volume:75"
+- "Show all network devices" -> "connectivity:list-devices:"
+- "Turn on WiFi" -> "connectivity:enable-wifi:"
+- "Turn off Bluetooth" -> "connectivity:disable-bluetooth:"
+- "Check airplane mode status" -> "connectivity:airplane-mode-status:"
+- "Create a WiFi hotspot with name MyHotspot" -> "connectivity:enable-hotspot:MyHotspot"
 
 Only output the structured format, nothing else. Do not include newlines or multiple commands.
 `, input)

@@ -323,12 +323,31 @@ lumo desktop:"show all sound devices"
 lumo desktop:"get current volume level"
 lumo desktop:"set default sound device to alsa_output.pci-0000_00_1f.3.analog-stereo"
 
+# Control connectivity settings (GNOME)
+lumo desktop:"show all network devices"
+lumo desktop:"turn on WiFi"
+lumo desktop:"turn off WiFi"
+lumo desktop:"check WiFi status"
+lumo desktop:"enable Bluetooth"
+lumo desktop:"disable Bluetooth"
+lumo desktop:"check Bluetooth status"
+lumo desktop:"turn on airplane mode"
+lumo desktop:"turn off airplane mode"
+lumo desktop:"check airplane mode status"
+lumo desktop:"create a WiFi hotspot with name 'MyHotspot'"
+lumo desktop:"create a WiFi hotspot with name 'MyHotspot' and password 'securepass'"
+lumo desktop:"turn off WiFi hotspot"
+lumo desktop:"check hotspot status"
+
 # AI-powered natural language commands
 lumo desktop:"I want to close all Firefox windows and then open a new terminal"
 lumo desktop:"Could you please minimize all my windows and then lock my screen?"
 lumo desktop:"First open Firefox, then maximize it, and finally play some music"
 lumo desktop:"Switch to dark mode and set my background to night-sky.jpg"
 lumo desktop:"Increase the volume to 80 percent and then play some music"
+lumo desktop:"Turn off WiFi and Bluetooth to save battery"
+lumo desktop:"Enable airplane mode and then set volume to 0"
+lumo desktop:"Create a hotspot named 'LumoShare' with password 'lumo1234'"
 ```
 
 
