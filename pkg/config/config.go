@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -54,6 +56,12 @@ type Config struct {
 	ServerPort        int  `json:"server_port"`
 	ServerQuietOutput bool `json:"server_quiet_output"`
 
+	// Authentication settings
+	EnableAuth            bool   `json:"enable_auth"`
+	JWTSecret             string `json:"jwt_secret"`
+	TokenExpirationHours  int    `json:"token_expiration_hours"`
+	RefreshExpirationDays int    `json:"refresh_expiration_days"`
+
 	// Application settings
 	Debug bool `json:"debug"`
 }
@@ -88,6 +96,10 @@ func DefaultConfig() *Config {
 		EnableServer:                false,    // REST server disabled by default
 		ServerPort:                  7531,     // Default port for the REST server (uncommon port)
 		ServerQuietOutput:           true,     // Suppress server log messages by default
+		EnableAuth:                  true,     // Authentication enabled by default
+		JWTSecret:                   "",       // Will be generated on first run
+		TokenExpirationHours:        24,       // 24 hours token expiration
+		RefreshExpirationDays:       7,        // 7 days refresh token expiration
 		Debug:                       false,
 	}
 }
@@ -116,6 +128,22 @@ func Load() (*Config, error) {
 
 	if openaiKey := os.Getenv("OPENAI_API_KEY"); openaiKey != "" {
 		cfg.OpenAIAPIKey = openaiKey
+	}
+
+	// Generate JWT secret if not set
+	if cfg.JWTSecret == "" {
+		// Generate a random 32-byte secret
+		secretBytes := make([]byte, 32)
+		_, err := rand.Read(secretBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate JWT secret: %w", err)
+		}
+		cfg.JWTSecret = base64.StdEncoding.EncodeToString(secretBytes)
+
+		// Save the updated configuration
+		if err := cfg.Save(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Could not save JWT secret to config file: %v\n", err)
+		}
 	}
 
 	return cfg, nil

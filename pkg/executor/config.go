@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -606,8 +607,24 @@ func (e *Executor) handleModeConfig(args []string, cmd *nlp.Command) (*Result, e
 func (e *Executor) handleServerConfig(args []string, cmd *nlp.Command) (*Result, error) {
 	if len(args) == 0 {
 		return &Result{
-			Output:     "Missing server command. Use 'show', 'enable', 'disable', or 'quiet'.",
-			IsError:    true,
+			Output: `
+╭─────────────────── 🖥️ Server Configuration ─────────────────╮
+
+  Commands:
+   • config:server show           Show current server settings
+   • config:server enable         Enable the REST server
+   • config:server disable        Disable the REST server
+   • config:server port <port>    Set the server port
+   • config:server quiet on       Enable quiet mode (suppress logs)
+   • config:server quiet off      Disable quiet mode (show logs)
+   • config:server auth enable    Enable authentication
+   • config:server auth disable   Disable authentication
+   • config:server auth password  Change the admin password
+
+  Configure these settings in ~/.config/lumo/config.json
+╰──────────────────────────────────────────────────────────╯
+`,
+			IsError:    false,
 			CommandRun: cmd.RawInput,
 		}, nil
 	}
@@ -625,23 +642,42 @@ func (e *Executor) handleServerConfig(args []string, cmd *nlp.Command) (*Result,
 			quietStr = "Enabled"
 		}
 
+		authStr := "Disabled"
+		if e.config.EnableAuth {
+			authStr = "Enabled"
+		}
+
 		output := fmt.Sprintf(`
 ╭─────────────────── 🖥️ Server Settings ───────────────────╮
 
   • Server Status: %s
   • Server Port: %d
   • Quiet Output: %s
+  • Authentication: %s
+  • Token Expiration: %d hours
+  • Refresh Token Expiration: %d days
 
   Configure these settings in ~/.config/lumo/config.json
   or use the commands below.
 
+  Commands:
+   • config:server enable         Enable the REST server
+   • config:server disable        Disable the REST server
+   • config:server port <port>    Set the server port
+   • config:server quiet on       Enable quiet mode
+   • config:server quiet off      Disable quiet mode
+   • config:server auth enable    Enable authentication
+   • config:server auth disable   Disable authentication
+   • config:server auth password  Change the admin password
 ╰──────────────────────────────────────────────────────────╯
-`, enabledStr, e.config.ServerPort, quietStr)
+`, enabledStr, e.config.ServerPort, quietStr, authStr, e.config.TokenExpirationHours, e.config.RefreshExpirationDays)
+
 		return &Result{
 			Output:     output,
 			IsError:    false,
 			CommandRun: cmd.RawInput,
 		}, nil
+
 	case "enable":
 		// Enable the server
 		e.config.EnableServer = true
@@ -680,26 +716,65 @@ func (e *Executor) handleServerConfig(args []string, cmd *nlp.Command) (*Result,
 			CommandRun: cmd.RawInput,
 		}, nil
 
-	case "quiet":
-		// Set quiet mode
+	case "port":
+		// Set the server port
 		if len(args) < 2 {
 			return &Result{
-				Output:     "Missing argument. Use 'on' or 'off'.",
+				Output:     "Missing port number. Usage: config:server port <port>",
 				IsError:    true,
 				CommandRun: cmd.RawInput,
 			}, nil
 		}
 
-		switch args[1] {
-		case "on":
-			// Enable quiet mode
+		port, err := strconv.Atoi(args[1])
+		if err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Invalid port number: %s", args[1]),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		if port < 1024 || port > 65535 {
+			return &Result{
+				Output:     fmt.Sprintf("Port number must be between 1024 and 65535"),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		e.config.ServerPort = port
+		if err := e.config.Save(); err != nil {
+			return &Result{
+				Output:     fmt.Sprintf("Error saving configuration: %v", err),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+		return &Result{
+			Output:     fmt.Sprintf("Server port set to %d", port),
+			IsError:    false,
+			CommandRun: cmd.RawInput,
+		}, nil
+
+	case "quiet":
+		// Set quiet mode
+		if len(args) < 2 {
+			return &Result{
+				Output:     "Missing argument. Usage: config:server quiet on|off",
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		switch strings.ToLower(args[1]) {
+		case "on", "true", "yes", "1":
 			e.config.ServerQuietOutput = true
-		case "off":
-			// Disable quiet mode
+		case "off", "false", "no", "0":
 			e.config.ServerQuietOutput = false
 		default:
 			return &Result{
-				Output:     fmt.Sprintf("Invalid argument: %s. Use 'on' or 'off'.", args[1]),
+				Output:     fmt.Sprintf("Invalid value: %s. Use 'on' or 'off'.", args[1]),
 				IsError:    true,
 				CommandRun: cmd.RawInput,
 			}, nil
@@ -714,19 +789,76 @@ func (e *Executor) handleServerConfig(args []string, cmd *nlp.Command) (*Result,
 			}, nil
 		}
 
-		quietStr := "disabled"
-		if e.config.ServerQuietOutput {
-			quietStr = "enabled"
+		quietStr := "enabled"
+		if !e.config.ServerQuietOutput {
+			quietStr = "disabled"
 		}
-
 		return &Result{
-			Output:     fmt.Sprintf("Server quiet output %s. Server log messages will %s be displayed.", quietStr, map[bool]string{true: "not", false: ""}[e.config.ServerQuietOutput]),
+			Output:     fmt.Sprintf("Server quiet mode %s", quietStr),
 			IsError:    false,
 			CommandRun: cmd.RawInput,
 		}, nil
+
+	case "auth":
+		// Handle authentication settings
+		if len(args) < 2 {
+			return &Result{
+				Output:     "Missing argument. Usage: config:server auth enable|disable|password",
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
+		switch strings.ToLower(args[1]) {
+		case "enable", "on", "true", "yes", "1":
+			e.config.EnableAuth = true
+			if err := e.config.Save(); err != nil {
+				return &Result{
+					Output:     fmt.Sprintf("Error saving configuration: %v", err),
+					IsError:    true,
+					CommandRun: cmd.RawInput,
+				}, nil
+			}
+			return &Result{
+				Output:     "Authentication enabled for the REST server.",
+				IsError:    false,
+				CommandRun: cmd.RawInput,
+			}, nil
+
+		case "disable", "off", "false", "no", "0":
+			e.config.EnableAuth = false
+			if err := e.config.Save(); err != nil {
+				return &Result{
+					Output:     fmt.Sprintf("Error saving configuration: %v", err),
+					IsError:    true,
+					CommandRun: cmd.RawInput,
+				}, nil
+			}
+			return &Result{
+				Output:     "Authentication disabled for the REST server. Warning: This makes your API endpoints publicly accessible!",
+				IsError:    false,
+				CommandRun: cmd.RawInput,
+			}, nil
+
+		case "password":
+			// This would be handled by a separate command that prompts for the password
+			return &Result{
+				Output:     "To change the password, please use the web interface or the REST API directly.",
+				IsError:    false,
+				CommandRun: cmd.RawInput,
+			}, nil
+
+		default:
+			return &Result{
+				Output:     fmt.Sprintf("Invalid value: %s. Use 'enable', 'disable', or 'password'.", args[1]),
+				IsError:    true,
+				CommandRun: cmd.RawInput,
+			}, nil
+		}
+
 	default:
 		return &Result{
-			Output:     fmt.Sprintf("Unknown server command: %s. Use 'show', 'enable', 'disable', or 'quiet'.", args[0]),
+			Output:     fmt.Sprintf("Unknown server command: %s. Use 'show', 'enable', 'disable', 'port', 'quiet', or 'auth'.", args[0]),
 			IsError:    true,
 			CommandRun: cmd.RawInput,
 		}, nil

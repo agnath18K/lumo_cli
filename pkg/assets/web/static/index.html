@@ -3,444 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumo Web Client</title>
-    <style>
-        :root {
-            --primary-color: #4a6bff;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --border-radius: 8px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f7fa;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            border-radius: var(--border-radius);
-            margin-bottom: 20px;
-            box-shadow: var(--box-shadow);
-        }
-
-        h1, h2, h3 {
-            margin-top: 0;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--box-shadow);
-        }
-
-        .server-status {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .status-online {
-            background-color: var(--success-color);
-        }
-
-        .status-offline {
-            background-color: var(--danger-color);
-        }
-
-        .input-group {
-            display: flex;
-            margin-bottom: 15px;
-        }
-
-        input, select, button {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-        }
-
-        input {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-
-        select {
-            margin-right: 10px;
-            min-width: 120px;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #3a5ae8;
-        }
-
-        .output {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            padding: 15px;
-            white-space: pre-wrap;
-            overflow-x: auto;
-            min-height: 100px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            margin-right: 5px;
-        }
-
-        .tab.active {
-            background-color: white;
-            border-color: #ddd;
-            color: var(--primary-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 10px;
-            color: var(--secondary-color);
-            font-size: 14px;
-        }
-
-        .examples {
-            margin-top: 20px;
-        }
-
-        .example-item {
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            background-color: #f0f0f0;
-            transition: background-color 0.2s;
-        }
-
-        .example-item:hover {
-            background-color: #e0e0e0;
-        }
-    </style>
+    <title>Lumo Web Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Lumo Web Client</h1>
-            <p>A simple web interface for interacting with the Lumo server</p>
-        </header>
-
-        <div class="card">
-            <div class="server-status">
-                <div id="statusIndicator" class="status-indicator status-offline"></div>
-                <span id="statusText">Checking server status...</span>
-            </div>
-            <div id="serverInfo"></div>
-        </div>
-
-        <div class="tabs">
-            <div class="tab active" data-tab="command">Command</div>
-            <div class="tab" data-tab="examples">Examples</div>
-            <div class="tab" data-tab="help">Help</div>
-        </div>
-
-        <div id="commandTab" class="tab-content active">
-            <div class="card">
-                <h2>Execute Command</h2>
-                <div class="input-group">
-                    <input type="text" id="commandInput" placeholder="Enter your command or question...">
-                    <select id="commandType">
-                        <option value="">AI (default)</option>
-                        <option value="shell">Shell</option>
-                        <option value="agent">Agent</option>
-                        <option value="system_health">System Health</option>
-                        <option value="system_report">System Report</option>
-                        <option value="help">Help</option>
-                        <option value="config">Config</option>
-                    </select>
-                    <button id="executeButton" onclick="executeCommand()">Execute</button>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app">
+        <!-- Login Page -->
+        <div id="login-page" class="flex items-center justify-center min-h-screen">
+            <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Lumo</h1>
+                    <p class="text-gray-600">Sign in to access the web interface</p>
                 </div>
-                <h3>Output:</h3>
-                <pre id="outputArea" class="output">Results will appear here...</pre>
-            </div>
-        </div>
-
-        <div id="examplesTab" class="tab-content">
-            <div class="card">
-                <h2>Example Commands</h2>
-                <p>Click on any example to use it:</p>
-
-                <h3>AI Queries</h3>
-                <div class="examples">
-                    <div class="example-item" data-command="How do I find large files in Linux?" data-type="">How do I find large files in Linux?</div>
-                    <div class="example-item" data-command="What's the difference between TCP and UDP?" data-type="">What's the difference between TCP and UDP?</div>
-                    <div class="example-item" data-command="How to use grep with regular expressions?" data-type="">How to use grep with regular expressions?</div>
-                </div>
-
-                <h3>Shell Commands</h3>
-                <div class="examples">
-                    <div class="example-item" data-command="ls -la" data-type="shell">ls -la</div>
-                    <div class="example-item" data-command="df -h" data-type="shell">df -h</div>
-                    <div class="example-item" data-command="uname -a" data-type="shell">uname -a</div>
-                </div>
-
-                <h3>System Commands</h3>
-                <div class="examples">
-                    <div class="example-item" data-command="check system health" data-type="system_health">Check system health</div>
-                    <div class="example-item" data-command="generate report" data-type="system_report">Generate system report</div>
+                <div id="login-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="username" name="username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="password" name="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+                <div class="mt-4 text-center text-sm text-gray-600">
+                    <p>Default credentials: admin / lumo</p>
                 </div>
             </div>
         </div>
 
-        <div id="helpTab" class="tab-content">
-            <div class="card">
-                <h2>Help</h2>
-                <p>This web interface allows you to interact with the Lumo server running on your system.</p>
-                <h3>Getting Started</h3>
-                <ol>
-                    <li>Make sure the Lumo server is running (use <code>lumo server:start</code> in your terminal)</li>
-                    <li>Check the server status indicator at the top of this page</li>
-                    <li>Enter a command or question in the input field</li>
-                    <li>Select the appropriate command type from the dropdown</li>
-                    <li>Click "Execute" to send the command to the server</li>
-                </ol>
-                <h3>Command Types</h3>
-                <ul>
-                    <li><strong>AI (default)</strong> - Natural language queries processed by AI</li>
-                    <li><strong>Shell</strong> - Execute shell commands on the server</li>
-                    <li><strong>Agent</strong> - Use Lumo's agent capabilities</li>
-                    <li><strong>System Health</strong> - Check system health</li>
-                    <li><strong>System Report</strong> - Generate system reports</li>
-                    <li><strong>Help</strong> - Get help information</li>
-                    <li><strong>Config</strong> - Modify configuration</li>
-                </ul>
+        <!-- Main App Page -->
+        <div id="app-page" class="hidden">
+            <nav class="bg-indigo-600 shadow-md">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex">
+                            <div class="flex-shrink-0 flex items-center">
+                                <h1 class="text-white text-xl font-bold">Lumo</h1>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="ml-3 relative">
+                                <div>
+                                    <button id="user-menu-button" class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white">
+                                        <span class="sr-only">Open user menu</span>
+                                        <span id="username-display" class="text-white px-3 py-2"></span>
+                                    </button>
+                                </div>
+                                <div id="user-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    <a href="#" id="change-password-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Change Password</a>
+                                    <a href="#" id="logout-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Execute Command</h2>
+                    <div class="flex space-x-4 mb-4">
+                        <input type="text" id="command" placeholder="Enter your command" class="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <select id="command-type" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">AI (default)</option>
+                            <option value="shell">Shell</option>
+                            <option value="agent">Agent</option>
+                            <option value="system_health">System Health</option>
+                            <option value="system_report">System Report</option>
+                            <option value="help">Help</option>
+                            <option value="config">Config</option>
+                        </select>
+                        <button id="execute-button" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Execute
+                        </button>
+                    </div>
+                    <div>
+                        <h3 class="text-md font-medium text-gray-900 mb-2">Response:</h3>
+                        <pre id="response" class="bg-gray-100 p-4 rounded-md overflow-x-auto whitespace-pre-wrap">Results will appear here...</pre>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <footer>
-            <p>Lumo Web Client v1.0 | <a href="https://github.com/agnath18K/lumo" target="_blank">GitHub</a></p>
-        </footer>
+        <!-- Change Password Modal -->
+        <div id="change-password-modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Change Password</h2>
+                    <button id="close-modal-button" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="change-password-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                <div id="change-password-success" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"></div>
+                <form id="change-password-form" class="space-y-4">
+                    <div>
+                        <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                        <input type="password" id="current-password" name="current-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+                        <input type="password" id="new-password" name="new-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                        <input type="password" id="confirm-password" name="confirm-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancel-change-password" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // Server configuration
-        // Use the current URL instead of hardcoding the server URL
-        const SERVER_URL = window.location.origin;
-        let serverOnline = false;
-
-        // DOM elements
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const serverInfo = document.getElementById('serverInfo');
-        const commandInput = document.getElementById('commandInput');
-        const commandType = document.getElementById('commandType');
-        const executeButton = document.getElementById('executeButton');
-        const outputArea = document.getElementById('outputArea');
-
-        // Check server status on page load
-        window.addEventListener('load', checkServerStatus);
-
-        // Set up tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs and content
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-                // Add active class to clicked tab and corresponding content
-                tab.classList.add('active');
-                document.getElementById(`${tab.dataset.tab}Tab`).classList.add('active');
-            });
-        });
-
-        // Set up example commands
-        document.querySelectorAll('.example-item').forEach(example => {
-            example.addEventListener('click', () => {
-                commandInput.value = example.dataset.command;
-                commandType.value = example.dataset.type;
-
-                // Switch to command tab
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.querySelector('.tab[data-tab="command"]').classList.add('active');
-                document.getElementById('commandTab').classList.add('active');
-
-                // Focus on the execute button
-                executeButton.focus();
-            });
-        });
-
-        // Check server status
-        async function checkServerStatus() {
-            try {
-                // Try to ping the server
-                const pingResponse = await fetch(`${SERVER_URL}/ping`, { timeout: 2000 });
-
-                if (pingResponse.ok) {
-                    // If ping is successful, get server status
-                    const statusResponse = await fetch(`${SERVER_URL}/api/v1/status`);
-                    const statusData = await statusResponse.json();
-
-                    // Update UI to show server is online
-                    statusIndicator.classList.remove('status-offline');
-                    statusIndicator.classList.add('status-online');
-                    statusText.textContent = 'Server is online';
-                    serverInfo.innerHTML = `
-                        <p><strong>Status:</strong> ${statusData.status}</p>
-                        <p><strong>Version:</strong> ${statusData.version}</p>
-                        <p><strong>Uptime:</strong> ${statusData.uptime}</p>
-                    `;
-                    serverOnline = true;
-                } else {
-                    setServerOffline();
-                }
-            } catch (error) {
-                setServerOffline();
-            }
-        }
-
-        // Set server status to offline
-        function setServerOffline() {
-            statusIndicator.classList.remove('status-online');
-            statusIndicator.classList.add('status-offline');
-            statusText.textContent = 'Server is offline';
-            serverInfo.innerHTML = `
-                <p>The Lumo server is not running or not accessible.</p>
-                <p>Start the server with: <code>lumo server:start</code></p>
-            `;
-            serverOnline = false;
-        }
-
-        // Execute command
-        async function executeCommand() {
-            // Get command and type
-            const command = commandInput.value.trim();
-            const type = commandType.value;
-
-            // Validate input
-            if (!command) {
-                outputArea.textContent = 'Please enter a command';
-                return;
-            }
-
-            // Check if server is online
-            if (!serverOnline) {
-                outputArea.textContent = 'Server is offline. Please start the server with: lumo server:start';
-                return;
-            }
-
-            // Show loading state
-            executeButton.innerHTML = '<span class="loading"></span>';
-            executeButton.disabled = true;
-            outputArea.textContent = 'Executing command...';
-
-            try {
-                // Prepare payload
-                const payload = { command };
-                if (type) {
-                    payload.type = type;
-                }
-
-                // Send request to server
-                const response = await fetch(`${SERVER_URL}/api/v1/execute`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                // Parse response
-                const data = await response.json();
-
-                // Display result
-                if (data.success) {
-                    outputArea.textContent = data.output;
-                } else {
-                    outputArea.textContent = `Error: ${data.error || 'Unknown error'}`;
-                }
-            } catch (error) {
-                outputArea.textContent = `Error: ${error.message}`;
-                console.error('Error:', error);
-            } finally {
-                // Reset button state
-                executeButton.innerHTML = 'Execute';
-                executeButton.disabled = false;
-            }
-        }
-
-        // Allow executing command with Enter key
-        commandInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                executeCommand();
-            }
-        });
-    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

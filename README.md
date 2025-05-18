@@ -35,6 +35,7 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 - **System Monitoring**: Track system health and performance
 - **Pipe Support**: Analyze and explain command outputs
 - **Web Interface**: Access Lumo through a browser-based interface
+- **Secure Authentication**: JWT-based authentication for the REST API
 - **Multiple AI Providers**: Support for Google Gemini, OpenAI, and Ollama
 
 ## 🚀 Installation
@@ -83,9 +84,15 @@ lumo desktop:"launch terminal"
 # Web interface - start the server and access via browser
 lumo server:start
 # Then open http://localhost:7531 in your browser
+# Default credentials: admin / lumo
+
+# Enable authentication for the REST API
+lumo config:server auth enable
 ```
 
 **For complete usage documentation and examples, visit [getlumo.dev/documentation](https://getlumo.dev/documentation)**
+
+**For information about the authentication system, see [Authentication Documentation](docs/authentication.md)**
 
 
 ## 🛠️ Development

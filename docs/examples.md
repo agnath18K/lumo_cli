@@ -483,10 +483,28 @@ lumo config:server disable
 lumo config:server quiet on
 lumo config:server quiet off
 
+# Enable authentication for the REST server
+lumo config:server auth enable
+
+# Disable authentication for the REST server
+lumo config:server auth disable
+
+# Change the default admin password
+lumo config:server auth password
+
+# Default credentials for the web interface and API:
+# Username: admin
+# Password: lumo
+# Important: Change this password immediately after first login!
+
 # Configure server settings in ~/.config/lumo/config.json:
 # - "enable_server": true/false - Enable or disable the REST server
 # - "server_port": 7531 - Set the port for the REST server
 # - "server_quiet_output": true/false - Control server log messages
+# - "enable_auth": true/false - Enable or disable authentication
+# - "jwt_secret": "your-secret" - Secret key for JWT token generation
+# - "token_expiration_hours": 24 - Token expiration time in hours
+# - "refresh_expiration_days": 7 - Refresh token expiration time in days
 ```
 
 ### REST API Endpoints
@@ -494,49 +512,78 @@ lumo config:server quiet off
 When the server is running, you can interact with Lumo via HTTP:
 
 ```bash
-# Check server status
+# Check server status (no authentication required)
 curl http://localhost:7531/api/v1/status
 
-# Simple ping test to check if server is running
+# Simple ping test to check if server is running (no authentication required)
 curl http://localhost:7531/ping
+
+# Authentication endpoints
+
+# Login to get a JWT token (no authentication required)
+# Using default credentials (username: admin, password: lumo)
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"lumo"}' \
+  http://localhost:7531/api/v1/auth/login
+
+# Refresh an expired token (no authentication required)
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"refresh_token":"your-refresh-token"}' \
+  http://localhost:7531/api/v1/auth/refresh
+
+# Change password (requires authentication)
+curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
+  -d '{"current_password":"lumo","new_password":"new-secure-password"}' \
+  http://localhost:7531/api/v1/auth/change-password
+
+# API endpoints (all require authentication when auth is enabled)
 
 # Execute a command (AI query) - Basic usage
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"How do I find large files in Linux?"}' \
   http://localhost:7531/api/v1/execute
 
 # Execute a shell command
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"ls -la", "type":"shell"}' \
   http://localhost:7531/api/v1/execute
 
 # Execute an agent command with parameters
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"create a backup", "type":"agent", "params":{"path":"/home/user/docs"}}' \
   http://localhost:7531/api/v1/execute
 
 # Get system health information
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"check system health", "type":"system_health"}' \
   http://localhost:7531/api/v1/execute
 
 # Generate a system report
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"generate report", "type":"system_report"}' \
   http://localhost:7531/api/v1/execute
 
 # Run a speed test
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"test download speed", "type":"speed_test"}' \
   http://localhost:7531/api/v1/execute
 
 # Get help information
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"help", "type":"help"}' \
   http://localhost:7531/api/v1/execute
 
 # Modify configuration
 curl -X POST -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{"command":"provider show", "type":"config"}' \
   http://localhost:7531/api/v1/execute
 ```
@@ -552,32 +599,83 @@ import json
 # Base URL for the Lumo REST API
 base_url = "http://localhost:7531"
 
-# Check server status
+# Check server status (no authentication required)
 response = requests.get(f"{base_url}/api/v1/status")
 print("Server Status:", response.json())
 
-# Execute an AI query
+# Login to get authentication tokens
+# Using default credentials (username: admin, password: lumo)
+login_payload = {
+    "username": "admin",
+    "password": "lumo"  # Replace with your actual password after changing the default
+}
+login_response = requests.post(
+    f"{base_url}/api/v1/auth/login",
+    headers={"Content-Type": "application/json"},
+    data=json.dumps(login_payload)
+)
+auth_data = login_response.json()
+token = auth_data["token"]
+refresh_token = auth_data["refresh_token"]
+print(f"Logged in as: {auth_data['username']}")
+
+# Execute an AI query with authentication
 payload = {
     "command": "What is the capital of France?"
 }
 response = requests.post(
     f"{base_url}/api/v1/execute",
-    headers={"Content-Type": "application/json"},
+    headers={
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    },
     data=json.dumps(payload)
 )
 print("AI Response:", response.json()["output"])
 
-# Execute a shell command
+# Execute a shell command with authentication
 payload = {
     "command": "df -h",
     "type": "shell"
 }
 response = requests.post(
     f"{base_url}/api/v1/execute",
-    headers={"Content-Type": "application/json"},
+    headers={
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    },
     data=json.dumps(payload)
 )
 print("Shell Command Output:", response.json()["output"])
+
+# Refresh token when it expires
+def refresh_auth_token():
+    refresh_payload = {
+        "refresh_token": refresh_token
+    }
+    refresh_response = requests.post(
+        f"{base_url}/api/v1/auth/refresh",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(refresh_payload)
+    )
+    new_auth_data = refresh_response.json()
+    return new_auth_data["token"], new_auth_data["refresh_token"]
+
+# Change password
+def change_password(current_password, new_password, token):
+    payload = {
+        "current_password": current_password,
+        "new_password": new_password
+    }
+    response = requests.post(
+        f"{base_url}/api/v1/auth/change-password",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        },
+        data=json.dumps(payload)
+    )
+    return response.json()
 ```
 
 ### Using the REST API with JavaScript/Node.js
@@ -589,45 +687,143 @@ const fetch = require('node-fetch');
 
 // Base URL for the Lumo REST API
 const baseUrl = 'http://localhost:7531';
+let authToken = '';
+let refreshToken = '';
 
-// Check server status
+// Check server status (no authentication required)
 fetch(`${baseUrl}/api/v1/status`)
   .then(response => response.json())
   .then(data => console.log('Server Status:', data))
   .catch(error => console.error('Error:', error));
 
-// Execute an AI query
-const aiQuery = {
-  command: 'What is the capital of France?'
+// Login to get authentication tokens
+// Using default credentials (username: admin, password: lumo)
+const loginCredentials = {
+  username: 'admin',
+  password: 'lumo'  // Replace with your actual password after changing the default
 };
 
-fetch(`${baseUrl}/api/v1/execute`, {
+fetch(`${baseUrl}/api/v1/auth/login`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify(aiQuery)
+  body: JSON.stringify(loginCredentials)
 })
   .then(response => response.json())
-  .then(data => console.log('AI Response:', data.output))
-  .catch(error => console.error('Error:', error));
+  .then(data => {
+    authToken = data.token;
+    refreshToken = data.refresh_token;
+    console.log(`Logged in as: ${data.username}`);
 
-// Execute a shell command
-const shellCommand = {
-  command: 'df -h',
-  type: 'shell'
-};
+    // Now that we have the token, we can make authenticated requests
+    executeAIQuery();
+    executeShellCommand();
+  })
+  .catch(error => console.error('Login Error:', error));
 
-fetch(`${baseUrl}/api/v1/execute`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(shellCommand)
-})
-  .then(response => response.json())
-  .then(data => console.log('Shell Command Output:', data.output))
-  .catch(error => console.error('Error:', error));
+// Execute an AI query with authentication
+function executeAIQuery() {
+  const aiQuery = {
+    command: 'What is the capital of France?'
+  };
+
+  fetch(`${baseUrl}/api/v1/execute`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    },
+    body: JSON.stringify(aiQuery)
+  })
+    .then(response => {
+      if (response.status === 401) {
+        // Token might be expired, try to refresh
+        return refreshAuthToken().then(() => executeAIQuery());
+      }
+      return response.json();
+    })
+    .then(data => console.log('AI Response:', data.output))
+    .catch(error => console.error('Error:', error));
+}
+
+// Execute a shell command with authentication
+function executeShellCommand() {
+  const shellCommand = {
+    command: 'df -h',
+    type: 'shell'
+  };
+
+  fetch(`${baseUrl}/api/v1/execute`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    },
+    body: JSON.stringify(shellCommand)
+  })
+    .then(response => {
+      if (response.status === 401) {
+        // Token might be expired, try to refresh
+        return refreshAuthToken().then(() => executeShellCommand());
+      }
+      return response.json();
+    })
+    .then(data => console.log('Shell Command Output:', data.output))
+    .catch(error => console.error('Error:', error));
+}
+
+// Refresh token when it expires
+function refreshAuthToken() {
+  const refreshPayload = {
+    refresh_token: refreshToken
+  };
+
+  return fetch(`${baseUrl}/api/v1/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(refreshPayload)
+  })
+    .then(response => response.json())
+    .then(data => {
+      authToken = data.token;
+      refreshToken = data.refresh_token;
+      console.log('Token refreshed successfully');
+      return data;
+    })
+    .catch(error => {
+      console.error('Token refresh error:', error);
+      throw error;
+    });
+}
+
+// Change password
+function changePassword(currentPassword, newPassword) {
+  const payload = {
+    current_password: currentPassword,
+    new_password: newPassword
+  };
+
+  return fetch(`${baseUrl}/api/v1/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Password changed successfully');
+      return data;
+    })
+    .catch(error => {
+      console.error('Password change error:', error);
+      throw error;
+    });
+}
 ```
 
 ### Using the REST API with HTML/JavaScript (Web Interface)

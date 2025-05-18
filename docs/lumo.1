@@ -168,6 +168,15 @@ Remove API key for a provider.
 .B lumo config:ollama show
 Show current Ollama URL.
 .TP
+.B lumo config:server auth enable
+Enable authentication for the REST server.
+.TP
+.B lumo config:server auth disable
+Disable authentication for the REST server.
+.TP
+.B lumo config:server auth password
+Change the default admin password.
+.TP
 .B lumo config:ollama set \fIURL\fR
 Set Ollama URL.
 .TP
@@ -403,6 +412,29 @@ lumo connect 192.168.1.5
 
 # Connect to a peer on a specific port
 lumo connect 192.168.1.5:9000
+.fi
+
+.SS REST Server and Authentication
+.PP
+.nf
+# Start the REST server
+lumo server:start
+
+# Stop the REST server
+lumo server:stop
+
+# Check server status
+lumo server:status
+
+# Enable authentication for the REST server
+lumo config:server auth enable
+
+# Disable authentication for the REST server
+lumo config:server auth disable
+
+# Default credentials for the web interface:
+# Username: admin
+# Password: lumo
 .fi
 
 .SS Pipe Support

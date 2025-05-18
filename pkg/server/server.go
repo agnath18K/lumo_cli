@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/agnath18K/lumo/pkg/assets"
+	"github.com/agnath18K/lumo/pkg/auth"
 	"github.com/agnath18K/lumo/pkg/config"
 	"github.com/agnath18K/lumo/pkg/executor"
 	"github.com/agnath18K/lumo/pkg/nlp"
@@ -18,10 +20,11 @@ import (
 
 // Server represents the REST API server for Lumo
 type Server struct {
-	config   *config.Config
-	executor *executor.Executor
-	server   *http.Server
-	isDaemon bool
+	config        *config.Config
+	executor      *executor.Executor
+	server        *http.Server
+	isDaemon      bool
+	authenticator *auth.Authenticator
 }
 
 // CommandRequest represents a request to execute a command
@@ -46,32 +49,117 @@ type StatusResponse struct {
 	Uptime  string `json:"uptime"`
 }
 
+// LoginRequest represents a login request
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// LoginResponse represents a login response
+type LoginResponse struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
+	Username     string `json:"username"`
+	ExpiresIn    int    `json:"expires_in"` // Seconds until token expires
+}
+
+// RefreshRequest represents a token refresh request
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// ChangePasswordRequest represents a password change request
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
 // New creates a new REST server instance
 func New(cfg *config.Config, exec *executor.Executor) *Server {
+	// Create the authenticator
+	homeDir, err := os.UserHomeDir()
+	credentialsDir := filepath.Join(homeDir, ".config", "lumo")
+	if err != nil {
+		log.Printf("Error getting user home directory: %v", err)
+		credentialsDir = ".config/lumo"
+	}
+
+	authenticator, err := auth.NewAuthenticator(cfg.JWTSecret, credentialsDir)
+	if err != nil {
+		log.Printf("Error creating authenticator: %v", err)
+	}
+
 	return &Server{
-		config:   cfg,
-		executor: exec,
-		isDaemon: false,
+		config:        cfg,
+		executor:      exec,
+		isDaemon:      false,
+		authenticator: authenticator,
 	}
 }
 
 // NewDaemon creates a new REST server instance in daemon mode
 func NewDaemon(cfg *config.Config, exec *executor.Executor) *Server {
+	// Create the authenticator
+	homeDir, err := os.UserHomeDir()
+	credentialsDir := filepath.Join(homeDir, ".config", "lumo")
+	if err != nil {
+		log.Printf("Error getting user home directory: %v", err)
+		credentialsDir = ".config/lumo"
+	}
+
+	authenticator, err := auth.NewAuthenticator(cfg.JWTSecret, credentialsDir)
+	if err != nil {
+		log.Printf("Error creating authenticator: %v", err)
+	}
+
 	return &Server{
-		config:   cfg,
-		executor: exec,
-		isDaemon: true,
+		config:        cfg,
+		executor:      exec,
+		isDaemon:      true,
+		authenticator: authenticator,
 	}
 }
 
 // Start starts the REST server
 func (s *Server) Start() error {
+	// Initialize the authenticator
+	if err := s.authenticator.InitializeCredentialsStore(); err != nil {
+		log.Printf("Error initializing credentials store: %v", err)
+	}
+
+	// Check if we need to create a default user
+	hasUsers, err := s.authenticator.HasUsers()
+	if err != nil {
+		log.Printf("Error checking for users: %v", err)
+	} else if !hasUsers {
+		// Create a default user
+		defaultUsername := "admin"
+		defaultPassword := "lumo"
+		if err := s.authenticator.AddUser(defaultUsername, defaultPassword); err != nil {
+			log.Printf("Error creating default user: %v", err)
+		} else {
+			log.Printf("Created default user '%s' with password '%s'", defaultUsername, defaultPassword)
+			log.Printf("Please change this password immediately using the web interface or API")
+		}
+	}
+
 	// Create a new router
 	mux := http.NewServeMux()
+
+	// Create a middleware chain
+	var handler http.Handler = mux
+	if s.config.EnableAuth {
+		handler = s.AuthMiddleware(mux)
+	}
 
 	// Register API routes
 	mux.HandleFunc("/api/v1/execute", s.handleExecute)
 	mux.HandleFunc("/api/v1/status", s.handleStatus)
+
+	// Register authentication routes
+	mux.HandleFunc("/api/v1/auth/login", s.handleLogin)
+	mux.HandleFunc("/api/v1/auth/refresh", s.handleRefreshToken)
+	mux.HandleFunc("/api/v1/auth/change-password", s.handleChangePassword)
 
 	// Add a simple ping endpoint for testing
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +208,7 @@ func (s *Server) Start() error {
 	// Create the server
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%d", s.config.ServerPort),
-		Handler: mux,
+		Handler: handler,
 	}
 
 	// If running in daemon mode, start the server in the main goroutine
@@ -153,7 +241,7 @@ func (s *Server) Start() error {
 	time.Sleep(100 * time.Millisecond)
 
 	// Test if the server is running
-	_, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/ping", s.config.ServerPort))
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/ping", s.config.ServerPort))
 	if err != nil {
 		if !s.config.ServerQuietOutput {
 			log.Printf("Warning: Server may not be running correctly: %v", err)
@@ -162,6 +250,7 @@ func (s *Server) Start() error {
 		if !s.config.ServerQuietOutput {
 			log.Printf("Server is running and responding to requests")
 		}
+		resp.Body.Close()
 	}
 
 	return nil
