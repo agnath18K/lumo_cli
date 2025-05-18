@@ -2,7 +2,6 @@ package daemon
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -66,7 +65,7 @@ func (d *Daemon) IsRunning() (bool, int, error) {
 	}
 
 	// Read the PID from the file
-	pidBytes, err := ioutil.ReadFile(pidFile)
+	pidBytes, err := os.ReadFile(pidFile)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to read PID file: %w", err)
 	}
@@ -130,9 +129,10 @@ func (d *Daemon) Start() error {
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 	cmd.Stdin = nil
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid: true, // Create a new session
-	}
+
+	// Set platform-specific process attributes
+	platform := platformAttrs{}
+	platform.setSysProcAttr(cmd)
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
@@ -142,7 +142,7 @@ func (d *Daemon) Start() error {
 
 	// Write the PID to the PID file
 	pidFile := d.GetPidFilePath()
-	if err := ioutil.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
 		logFile.Close()
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}

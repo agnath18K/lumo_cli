@@ -8,13 +8,13 @@ import (
 // Version information
 var (
 	// Version is the current version of Lumo
-	Version = "1.0.1"
+	Version = "1.0.2"
 
 	// BuildDate is the date when the binary was built
-	BuildDate = "May 13 2025"
+	BuildDate = "May 19 2025"
 
 	// GitCommit is the git commit hash when the binary was built
-	GitCommit = "9fb69dc"
+	GitCommit = "HEAD"
 
 	// GoVersion is the version of Go used to build the binary
 	GoVersion = runtime.Version()
