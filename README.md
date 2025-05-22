@@ -5,7 +5,7 @@
   <a href="https://getlumo.dev"><b>getlumo.dev</b></a>
 
   <p>
-    <img src="https://img.shields.io/badge/version-1.0.1-blue.svg" alt="Version 1.0.1">
+    <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version 1.0.1">
     <img src="https://img.shields.io/badge/go-%3E%3D1.22-00ADD8.svg" alt="Go Version">
     <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT">
   </p>
@@ -45,12 +45,12 @@ Lumo is an intelligent CLI assistant that interprets natural language to help yo
 ```bash
 
 # Using pre-built binary (Linux)
-curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.1/lumo_1.0.1_linux_amd64.tar.gz -o lumo.tar.gz
+curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.2/lumo_1.0.2_linux_amd64.tar.gz -o lumo.tar.gz
 tar -xzf lumo.tar.gz
 sudo mv lumo /usr/local/bin/
 
 # Using Debian package
-curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.1/lumo_1.0.1_amd64.deb -o lumo.deb
+curl -L https://github.com/agnath18K/lumo_cli/releases/download/v1.0.2/lumo_1.0.2_amd64.deb -o lumo.deb
 sudo dpkg -i lumo.deb
 ```
 
